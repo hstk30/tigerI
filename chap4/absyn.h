@@ -25,70 +25,97 @@ typedef struct A_nametyList_ *A_nametyList;
 typedef struct A_efield_ *A_efield;
 typedef struct A_efieldList_ *A_efieldList;
 
-typedef enum {A_plusOp, A_minusOp, A_timesOp, A_divideOp,
-	     A_eqOp, A_neqOp, A_ltOp, A_leOp, A_gtOp, A_geOp} A_oper;
+typedef enum {
+    A_plusOp, A_minusOp, A_timesOp, A_divideOp,
+    A_eqOp, A_neqOp, A_ltOp, A_leOp, A_gtOp, A_geOp
+} A_oper;
 
-struct A_var_
-       {enum {A_simpleVar, A_fieldVar, A_subscriptVar} kind;
-        A_pos pos;
-	union {S_symbol simple;
-	       struct {A_var var;   /* var a := 1 */
-		       S_symbol sym;} field;  /* record.field */
-	       struct {A_var var;
-		       A_exp exp;} subscript;  /* array[index] */ 
-	     } u;
-      };
+struct A_var_ {
+    enum {
+        A_simpleVar, 
+        A_fieldVar, 
+        A_subscriptVar
+    } kind;
+    A_pos pos;
+    union {
+        S_symbol simple;
+        struct {
+            A_var var;   /* var a := 1 */
+            S_symbol sym;
+        } field;  /* record.field */
+        struct {
+            A_var var;
+            A_exp exp;
+        } subscript;  /* array[index] */ 
+    } u;
+};
 
-struct A_exp_
-      {enum {A_varExp, A_nilExp, A_intExp, A_stringExp, A_callExp,
-	       A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp,
-	       A_whileExp, A_forExp, A_breakExp, A_letExp, A_arrayExp} kind;
-       A_pos pos;
-       union {A_var var;    /* var b := a */
-	      /* nil; - needs only the pos */
-	      int intt;
-	      string stringg;
-	      struct {S_symbol func; A_expList args;} call; /* func(args) */
-	      struct {A_oper oper; A_exp left; A_exp right;} op;    /* left oper right */
-	      struct {S_symbol typ; A_efieldList fields;} record;   /* type tree = {key: int, value: int} */
-	      A_expList seq;    /* (exp; ...) */
-	      struct {A_var var; A_exp exp;} assign;    /* var := exp */
-          /* if test then thenn else elsee */
-	      struct {A_exp test, then, elsee;} iff; /* elsee is optional */
-	      struct {A_exp test, body;} whilee;    /* while test do body */
-	      struct {S_symbol var; A_exp lo,hi,body; bool escape;} forr;   /* for var := lo to hi do body */
-	      /* breakk; - need only the pos */
-	      struct {A_decList decs; A_exp body;} let; /* let decs in body end */
-	      struct {S_symbol typ; A_exp size, init;} array;   /* type[size] of init */
-	    } u;
-     };
+struct A_exp_ {
+    enum {
+        A_varExp, A_nilExp, A_intExp, A_stringExp, A_callExp,
+        A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp,
+        A_whileExp, A_forExp, A_breakExp, A_letExp, A_arrayExp
+    } kind;
+    A_pos pos;
+    union {A_var var;    /* var b := a */
+        /* nil; - needs only the pos */
+        int intt;
+        string stringg;
+        struct {S_symbol func; A_expList args;} call; /* func(args) */
+        struct {A_oper oper; A_exp left; A_exp right;} op;    /* left oper right */
+        struct {S_symbol typ; A_efieldList fields;} record;   /* type tree = {key: int, value: int} */
+        A_expList seq;    /* (exp; ...) */
+        struct {A_var var; A_exp exp;} assign;    /* var := exp */
+        /* if test then thenn else elsee */
+        struct {A_exp test, then, elsee;} iff; /* elsee is optional */
+        struct {A_exp test, body;} whilee;    /* while test do body */
+        struct {S_symbol var; A_exp lo,hi,body; bool escape;} forr;   /* for var := lo to hi do body */
+        /* breakk; - need only the pos */
+        struct {A_decList decs; A_exp body;} let; /* let decs in body end */
+        struct {S_symbol typ; A_exp size, init;} array;   /* type[size] of init */
+    } u;
+};
 
-struct A_dec_ 
-    {enum {A_functionDec, A_varDec, A_typeDec} kind;
-     A_pos pos;
-     union {A_fundecList function;
-	    /* escape may change after the initial declaration */
-	    struct {S_symbol var; S_symbol typ; A_exp init; bool escape;} var;
-	    A_nametyList type;
-	  } u;
-   };
+struct A_dec_ {
+    enum {
+        A_functionDec, 
+        A_varDec, 
+        A_typeDec
+    } kind;
+    A_pos pos;
+    union {
+        A_fundecList function;
+        /* escape may change after the initial declaration */
+        struct {S_symbol var; S_symbol typ; A_exp init; bool escape;} var;
+        A_nametyList type;
+    } u;
+};
 
-struct A_ty_ {enum {A_nameTy, A_recordTy, A_arrayTy} kind;
-	      A_pos pos;
-	      union {S_symbol name;
-		     A_fieldList record;
-		     S_symbol array;
-		   } u;
-	    };
+struct A_ty_ {
+    enum {
+        A_nameTy, 
+        A_recordTy, 
+        A_arrayTy
+    } kind;
+    A_pos pos;
+    union {
+        S_symbol name;
+        A_fieldList record;
+        S_symbol array;
+    } u;
+};
 
 /* Linked lists and nodes of lists */
 
 struct A_field_ {S_symbol name, typ; A_pos pos; bool escape;};
 struct A_fieldList_ {A_field head; A_fieldList tail;};
 struct A_expList_ {A_exp head; A_expList tail;};
-struct A_fundec_ {A_pos pos;
-                 S_symbol name; A_fieldList params; 
-		 S_symbol result; A_exp body;};
+struct A_fundec_ {
+    A_pos pos;
+    S_symbol name; 
+    A_fieldList params; 
+    S_symbol result; A_exp body;
+};
 
 struct A_fundecList_ {A_fundec head; A_fundecList tail;};
 struct A_decList_ {A_dec head; A_decList tail;};

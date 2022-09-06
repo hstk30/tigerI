@@ -1,5 +1,6 @@
 /*
  * temp.h 
+ * 临时变量和标号
  *
  */
 
@@ -7,7 +8,9 @@ typedef struct Temp_temp_ *Temp_temp;
 Temp_temp Temp_newtemp(void);
 
 typedef struct Temp_tempList_ *Temp_tempList;
-struct Temp_tempList_ { Temp_temp head; Temp_tempList tail;};
+struct Temp_tempList_ { 
+    Temp_temp head; Temp_tempList tail;
+};
 Temp_tempList Temp_TempList(Temp_temp h, Temp_tempList t);
 
 typedef S_symbol Temp_label;

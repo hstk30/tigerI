@@ -6,7 +6,10 @@ typedef struct G_graph_ *G_graph;  /* The "graph" type */
 typedef struct G_node_ *G_node;    /* The "node" type */
 
 typedef struct G_nodeList_ *G_nodeList;
-struct G_nodeList_ { G_node head; G_nodeList tail;};
+struct G_nodeList_ { 
+    G_node head; 
+    G_nodeList tail;
+};
 
 /* Make a new graph */
 G_graph G_Graph(void); 
