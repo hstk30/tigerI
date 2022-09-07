@@ -3,6 +3,9 @@
  *             using Maximal Munch.
  */
 
+#ifndef ASSEM_H_
+#define ASSEM_H_
+
 typedef struct {
     Temp_labelList labels;
 } *AS_targets;
@@ -52,3 +55,5 @@ struct AS_proc_ {
 };
 
 AS_proc AS_Proc(string p, AS_instrList b, string e);
+
+#endif

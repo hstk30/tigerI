@@ -7,6 +7,12 @@
 
 /* Type Definitions */
 
+#ifndef ABSYN_H_
+#define ABSYN_H_
+
+#include "symbol.h"
+#include "util.h"
+
 typedef int A_pos;
 
 typedef struct A_var_ *A_var;
@@ -38,9 +44,9 @@ struct A_var_ {
     } kind;
     A_pos pos;
     union {
-        S_symbol simple;
+        S_symbol simple;    /* var a := 1 */
         struct {
-            A_var var;   /* var a := 1 */
+            A_var var;   
             S_symbol sym;
         } field;  /* record.field */
         struct {
@@ -57,15 +63,16 @@ struct A_exp_ {
         A_whileExp, A_forExp, A_breakExp, A_letExp, A_arrayExp
     } kind;
     A_pos pos;
-    union {A_var var;    /* var b := a */
-        /* nil; - needs only the pos */
-        int intt;
-        string stringg;
+    union {
+        A_var var;    /* a */
+        /* nil; - needs only the pos and kind */
+        int intt;   /* 1 */
+        string stringg; /* "123" */ 
         struct {S_symbol func; A_expList args;} call; /* func(args) */
-        struct {A_oper oper; A_exp left; A_exp right;} op;    /* left oper right */
-        struct {S_symbol typ; A_efieldList fields;} record;   /* type tree = {key: int, value: int} */
+        struct {A_oper oper; A_exp left; A_exp right;} op;    /* a + b */
+        struct {S_symbol typ; A_efieldList fields;} record;   /* tree = {key: int, value: int} */
         A_expList seq;    /* (exp; ...) */
-        struct {A_var var; A_exp exp;} assign;    /* var := exp */
+        struct {A_var var; A_exp exp;} assign;    /* var a := exp */
         /* if test then thenn else elsee */
         struct {A_exp test, then, elsee;} iff; /* elsee is optional */
         struct {A_exp test, body;} whilee;    /* while test do body */
@@ -86,7 +93,8 @@ struct A_dec_ {
     union {
         A_fundecList function;
         /* escape may change after the initial declaration */
-        struct {S_symbol var; S_symbol typ; A_exp init; bool escape;} var;
+        /* var a: int := 1 */
+        struct {S_symbol var; S_symbol typ; A_exp init; bool escape;} var; 
         A_nametyList type;
     } u;
 };
@@ -99,13 +107,11 @@ struct A_ty_ {
     } kind;
     A_pos pos;
     union {
-        S_symbol name;
-        A_fieldList record;
-        S_symbol array;
+        S_symbol name;  /* var a: type_id */
+        A_fieldList record; /* { tyfields } */
+        S_symbol array; /* array of type_id */
     } u;
 };
-
-/* Linked lists and nodes of lists */
 
 struct A_field_ {S_symbol name, typ; A_pos pos; bool escape;};
 struct A_fieldList_ {A_field head; A_fieldList tail;};
@@ -171,3 +177,4 @@ A_nametyList A_NametyList(A_namety head, A_nametyList tail);
 A_efield A_Efield(S_symbol name, A_exp exp);
 A_efieldList A_EfieldList(A_efield head, A_efieldList tail);
 
+#endif

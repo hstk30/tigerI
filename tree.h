@@ -2,6 +2,10 @@
  * tree.h - Definitions for intermediate representation (IR) trees.
  *
  */
+
+#ifndef TREE_H_
+#define TREE_H_
+
 typedef struct T_stm_ *T_stm;
 typedef struct T_exp_ *T_exp;
 typedef struct T_expList_ *T_expList;
@@ -77,3 +81,5 @@ T_exp T_Call(T_exp, T_expList);
 
 T_relOp T_notRel(T_relOp);  /* a op b    ==     not(a notRel(op) b)  */
 T_relOp T_commute(T_relOp); /* a op b    ==    b commute(op) a       */
+
+#endif

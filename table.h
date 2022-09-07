@@ -11,6 +11,9 @@
  * 一个散列栈，即记录了进入的先后顺序，也支持散列查找
  */
 
+#ifndef TABLE_H_
+#define TABLE_H_
+
 typedef struct TAB_table_ *TAB_table;
 
 /* Make a new table mapping "keys" to "values". */
@@ -33,4 +36,4 @@ void *TAB_pop(TAB_table t);
  *  recent binding of any key to the oldest binding in the table */
 void TAB_dump(TAB_table t, void (*show)(void *key, void *value));
 
-
+#endif
