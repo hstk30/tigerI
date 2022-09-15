@@ -1,5 +1,9 @@
-a.out: parsetest.o y.tab.o lex.yy.o errormsg.o util.o
-	cc -g parsetest.o y.tab.o lex.yy.o errormsg.o util.o
+LEX_OBJECTS = lex.yy.o errormsg.o util.o
+
+lextest.o: lextest.c tokens.h errormsg.h util.h
+lex.yy.o: lex.yy.c tokens.h errormsg.h util.h
+errormsg.o: errormsg.c errormsg.h util.h
+util.o: util.c util.h
 
 parsetest.o: parsetest.c errormsg.h util.h
 	cc -g -c parsetest.c
@@ -16,11 +20,14 @@ y.tab.h: y.tab.c
 errormsg.o: errormsg.c errormsg.h util.h
 	cc -g -c errormsg.c
 
+lextest: lextest.o $(LEX_OBJECTS)
+	cc -o $@ lextest.o $(LEX_OBJECTS)
+
 lex.yy.o: lex.yy.c y.tab.h errormsg.h util.h
 	cc -g -c lex.yy.c
 
-#lex.yy.c: tiger.lex
-#	lex tiger.lex
+lex.yy.c: tiger.lex
+	lex tiger.lex
 
 util.o: util.c util.h
 	cc -g -c util.c

@@ -5,6 +5,10 @@
  * Linked list types end with "..list"
  */
 
+/*
+ * 类型环境中的绑定值，根据抽象语法转换为此
+ */
+
 #ifndef TYPES_H_
 #define TYPES_H_
 
@@ -17,8 +21,8 @@ typedef struct Ty_fieldList_ *Ty_fieldList;
 
 struct Ty_ty_ {
     enum {
-        Ty_record, Ty_nil, Ty_int, Ty_string, 
-        Ty_array, Ty_name, Ty_void
+        Ty_int, Ty_string, Ty_nil, Ty_void, /* 内置 */
+        Ty_record, Ty_array, Ty_name
     } kind;
     union {
         Ty_fieldList record;
@@ -26,7 +30,7 @@ struct Ty_ty_ {
         struct {
             S_symbol sym; 
             Ty_ty ty;
-        } name;
+        } name; /* 递归类型声明时用于占位 */
     } u;
 };
 

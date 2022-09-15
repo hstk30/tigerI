@@ -30,15 +30,15 @@ struct T_stm_ {
         T_CJUMP, T_MOVE, T_EXP
     } kind;
     union {
-        struct { T_stm left, right; } SEQ;
+        struct {T_stm left, right;} SEQ;
         Temp_label LABEL;
-        struct { T_exp exp; Temp_labelList jumps; } JUMP;
+        struct {T_exp exp; Temp_labelList jumps;} JUMP;
         struct { 
             T_relOp op; 
             T_exp left, right;
             Temp_label true, false;
         } CJUMP;
-        struct { T_exp dst, src; } MOVE;
+        struct {T_exp dst, src;} MOVE;
         T_exp EXP;
     } u;
 };
@@ -50,13 +50,13 @@ struct T_exp_ {
         T_CONST, T_CALL
     } kind;
     union {
-        struct { T_binOp op; T_exp left, right; } BINOP;
+        struct {T_binOp op; T_exp left, right;} BINOP;
         T_exp MEM;
         Temp_temp TEMP;
-        struct { T_stm stm; T_exp exp; } ESEQ;
+        struct {T_stm stm; T_exp exp;} ESEQ;
         Temp_label NAME;
         int CONST;
-        struct { T_exp fun; T_expList args; } CALL;
+        struct {T_exp fun; T_expList args;} CALL;
     } u;
 };
 

@@ -1,0 +1,18 @@
+/* balabala */
+
+let
+    var s1: string := ""
+    var s2: string := " "
+    var s3: string := "abc"
+    var s4: string := "test malloc          aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa "
+    var s5: string := "line1\nline2\n tab\t, \"quote\" \\backlash"
+    var s6: string := "\x30\x31\x32\x34"
+    var s7: string := "\110\145\154\154\157"
+    var s7: string := "abg
+    fweoi f
+    fjwo ff
+    "
+in 
+    ()
+end
+

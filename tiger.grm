@@ -47,7 +47,3 @@ void yyerror(char *s)
 program:   exp    {absyn_root=$1;}
 
 exp:   ID         {$$=A_VarExp(EM_tokPos,A_SimpleVar(EM_tokPos,S_Symbol($1)));}
-
-
-
-	

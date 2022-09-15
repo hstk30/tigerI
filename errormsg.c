@@ -40,7 +40,7 @@ void EM_newline(void) {
     linePos = intList(EM_tokPos, linePos);
 }
 
-void EM_error(int pos, char *message,...) {
+void EM_error(int pos, char *message, ...) {
     va_list ap;
     IntList lines = linePos; 
     int num = lineNum;
