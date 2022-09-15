@@ -3,3 +3,12 @@
 *.so
 *.dSYM
 .DS_Store
+
+tokens.h
+
+y.output
+y.tab.c
+y.tab.h
+
+lextext
+
