@@ -3,6 +3,7 @@
 *.so
 *.dSYM
 .DS_Store
+.tags
 
 tokens.h
 
@@ -10,5 +11,7 @@ y.output
 y.tab.c
 y.tab.h
 
-lextext
+lex.yy.c
+
+lextest
 
