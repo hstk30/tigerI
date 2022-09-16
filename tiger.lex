@@ -11,38 +11,41 @@ int charPos = 1;
 static int comment_lev = 0;
 
 struct FBuffer {
-    string str_buff;
+    string str_buf;
     size_t len;
     size_t capacity;
-} f_buff;
+} f_buf;
 
 static void
 init_str_buffer() {
-    string str_buff = checked_malloc(INIT_CAPACITY);
+    string str_buf = checked_malloc(INIT_CAPACITY);
 
-    f_buff.str_buff = str_buff;
-    f_buff.len = 0;
-    f_buff.capacity = INIT_CAPACITY;
-    str_buff[0] = '\0';
+    f_buf.str_buf = str_buf;
+    f_buf.len = 0;
+    f_buf.capacity = INIT_CAPACITY;
+    str_buf[0] = '\0';
 }
 
 static void
 str_buffer_append(char c) {
-    if (f_buff.len + 1 > f_buff.capacity - 1) {
-        string new_buff = checked_malloc(f_buff.capacity + EXTRA_BUFF);
-        strcpy(new_buff, f_buff.str_buff);
-        free(f_buff.str_buff);
+    if (f_buf.len + 1 > f_buf.capacity - 1) {
+        string new_buf = checked_malloc(f_buf.capacity + EXTRA_BUFF);
+        strcpy(new_buf, f_buf.str_buf);
+        free(f_buf.str_buf);
 
-        f_buff.str_buff = new_buff;
-        f_buff.capacity = f_buff.capacity + EXTRA_BUFF;
+        f_buf.str_buf = new_buf;
+        f_buf.capacity = f_buf.capacity + EXTRA_BUFF;
     } else {
-        f_buff.str_buff[f_buff.len ++] = c;
-        f_buff.str_buff[f_buff.len] = '\0';
+        f_buf.str_buf[f_buf.len ++] = c;
+        f_buf.str_buf[f_buf.len] = '\0';
     }
 }
 
 int yywrap(void) {
-    charPos=1;
+    if (comment_lev != 0)
+        EM_error(charPos, "End-Of-File Unclosed comment!");
+    charPos = 1;
+    comment_lev = 0;
     return 1;
 }
 
@@ -54,14 +57,13 @@ void adjust(void) {
 static int
 to_hex(char c) {
     int hex;
-    if (('0' <= c) && (c <= '7'))
+    if (('0' <= c) && (c <= '9'))
         hex = c - '0';
     else if (('a' <= c) && (c <= 'f'))
-        hex = c - 'a';
+        hex = c - 'a' + 10;
     else if (('A' <= c) && (c <= 'F'))
-        hex = c - 'A';
+        hex = c - 'A' + 10;
     else {
-        EM_error(charPos, "In \"\\xnum\" num must composed of exactly 2 hexadecimal characters.");
         return -1;
     }
     return hex;
@@ -70,13 +72,12 @@ to_hex(char c) {
 static int 
 to_oct(char c) {
     int oct;
-    if (('0' <= c) && (c <= '7'))
+    if (('0' <= c) && (c <= '7')) {
         oct = c - '0';
-    else{
-        EM_error(charPos, "In \"\\num\" num must between 0 and 255 in decimal (0 and 377 in octal)");
-        return -1;
+        return oct;
     }
-    return oct;
+    else 
+        return -1;
 }
 
 %}
@@ -166,16 +167,27 @@ type     {adjust(); return TYPE;}
                             int uh = to_hex(input());
                             int lh = to_hex(input());
                             charPos +=2;
-                            if ((uh == -1) || (lh == -1)) err = 1;
+                            if ((uh == -1) || (lh == -1)) {
+                                EM_error(charPos, "In \"\\xnum\" num must composed of exactly 2 hexadecimal characters.");
+                                err = 1;
+                            }
                             escape_ch = uh * 16 + lh;
+                            assert(escape_ch < 256);
                         } else if (('0' <= ch) && (ch <= '3')) {
                             int ho = ch - '0';
                             int mo = to_oct(input());
                             int lo = to_oct(input());
-                            if ((mo == -1) || (lo == 01)) err = 1;
+                            if ((mo == -1) || (lo == -1)) {
+                                EM_error(charPos, "In \"\\num\" num must between 0 and 255 in decimal (0 and 377 in octal)");
+                                err = 1;
+                            }
                             escape_ch = ho * 64 + mo * 8 + lo;
+                            assert(escape_ch < 256);
+                        } else if (ch > '3') {
+                                EM_error(charPos, "In \"\\num\" num must between 0 and 255 in decimal (0 and 377 in octal)");
+                                err = 1;
                         } else {
-                            EM_error(charPos, "\\%c is not support", ch); err = 1;
+                            EM_error(charPos, "Other escape: \\%c is not support", ch); err = 1;
                         }
                         if (err == 0)
                             str_buffer_append(escape_ch);
@@ -183,7 +195,7 @@ type     {adjust(); return TYPE;}
 				}
                 break;
             case '\"':
-                yylval.sval = String(f_buff.str_buff); 
+                yylval.sval = String(f_buf.str_buf); 
                 return STRING;
 			default:
                 str_buffer_append(ch);
@@ -201,7 +213,7 @@ type     {adjust(); return TYPE;}
         EM_error(charPos, "Unclosed string!");
         yyterminate();
     }
-    yylval.sval = String(f_buff.str_buff); 
+    yylval.sval = String(f_buf.str_buf); 
     return STRING;
     }
 
@@ -209,19 +221,22 @@ type     {adjust(); return TYPE;}
     adjust(); 
     int c;
     comment_lev ++;
-    while((c = input()) != EOF) {
+    while ((c = input()) != EOF) {
         charPos ++;
         switch (c) {
             case '\n': 
                 EM_newline(); break;
             case '/': 
-                if ((c = input()) == '*') 
+                if ((c = input()) == '*') {
+                    charPos ++;
                     comment_lev ++;
-                else
+                } else {
                     unput(c);
+                }
                 break;
             case '*': 
-                if ((c = input()) == '/')
+                while ((c = input()) == '*') charPos ++;
+                if (c  == '/')
                     comment_lev --;
                 else
                     unput(c);
@@ -238,6 +253,5 @@ type     {adjust(); return TYPE;}
         EM_error(charPos, "End-Of-File Unclosed comment!");
         yyterminate();
     }
-    continue;
     }
 
