@@ -22,7 +22,6 @@ void yyerror(char *s)
 	string sval;
 	A_var var;
 	A_exp exp;
-	/* et cetera */
 	}
 
 %token <sval> ID STRING
