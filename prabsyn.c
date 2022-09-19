@@ -8,6 +8,7 @@
 #include "symbol.h" /* symbol table data structures */
 #include "absyn.h"  /* abstract syntax data structures */
 #include "prabsyn.h" /* function prototype */
+#include "parse.h" /* function prototype */
 
 /* local function prototypes */
 static void pr_var(FILE *out, A_var v, int d);
@@ -278,4 +279,18 @@ static void pr_efieldList(FILE *out, A_efieldList v, int d) {
 }
 
 
+int main(int argc, char **argv) {
+    if (argc!=2) {
+        fprintf(stderr,"usage: a.out filename\n"); 
+        return(1);
+    }
+    A_exp absyn_tree_root = parse(argv[1]);
+    if (absyn_tree_root)
+        pr_exp(stdout, absyn_tree_root, 0);
+    else {
+        fprintf(stderr, "parsing failed!\n");
+        return 1;
+    }
+    return 0;
+}
 
