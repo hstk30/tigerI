@@ -9,11 +9,12 @@ int yylex(void); /* function prototype */
 
 A_exp absyn_root;
 
-void yyerror(char *s) {
+void yyerror(char const *s) {
     EM_error(EM_tokPos, "%s", s);
 }
 %}
 
+/* %define parse.error detailed */
 
 %union {
 	int pos;

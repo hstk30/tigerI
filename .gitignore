@@ -2,6 +2,7 @@
 *.a
 *.so
 *.dSYM
+*.log
 .DS_Store
 .tags
 
