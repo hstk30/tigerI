@@ -31,4 +31,4 @@ lex.yy.c: tiger.lex
 	lex tiger.lex
 
 clean: 
-	rm -f a.out *.o lextest prabsyn y.tab.c y.tab.h lex.yy.c
+	rm -f a.out *.o lextest prabsyn y.tab.c y.tab.h lex.yy.c y.output

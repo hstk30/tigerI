@@ -23,3 +23,18 @@ S_table E_base_tenv() {
     return tenv;
 }
 
+S_table E_base_venv() {
+    S_table venv = S_empty();
+    S_enter(venv, S_Symbol("print"), Ty_Void());
+    S_enter(venv, S_Symbol("flush"), Ty_Void());
+    S_enter(venv, S_Symbol("getchar"), Ty_String());
+    S_enter(venv, S_Symbol("ord"), Ty_Int());
+    S_enter(venv, S_Symbol("chr"), Ty_String());
+    S_enter(venv, S_Symbol("size"), Ty_Int());
+    S_enter(venv, S_Symbol("substring"), Ty_String());
+    S_enter(venv, S_Symbol("concat"), Ty_String());
+    S_enter(venv, S_Symbol("not"), Ty_Int());
+    S_enter(venv, S_Symbol("exit"), Ty_Void());
+    return venv;
+}
+
