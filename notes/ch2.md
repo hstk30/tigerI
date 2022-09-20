@@ -36,6 +36,7 @@
 #### 一些问题或bug
 
 - 报错的时候`token` 的位置可能会有1、2 位的偏差
+- 字符串解析出错时，没有将`sval` 设置为空或特殊处理，使得`sval` 中的内容为出错之前移入的字符
 - `End-Of-File` 的时候，未结束的字符串和注释可能会报错
     [stack overflow-Flex can't handle EOF in Action, or how to?](https://stackoverflow.com/questions/73767676/flex-cant-handle-eof-in-action-or-how-to/73768269)
     [Issue-Can't handle EOF in Action, or how to?](https://github.com/westes/flex/issues/540)
