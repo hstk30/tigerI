@@ -13,3 +13,8 @@ Book 《现代编译原理 c语言实现》 Exercise and Implement
 - [travmygit/TigerCompiler](https://github.com/travmygit/TigerCompiler)
 - [kentang-mit/TigerCompiler](https://github.com/kentang-mit/TigerCompiler)
 
+
+## 环境
+
+- **flex 2.6.4**
+- **bison 3.8.2**

@@ -228,6 +228,7 @@ A_exp A_ArrayExp(A_pos pos, S_symbol typ, A_exp size, A_exp init);
 A_dec A_FunctionDec(A_pos pos, A_fundecList function);
 A_dec A_VarDec(A_pos pos, S_symbol var, S_symbol typ, A_exp init);
 A_dec A_TypeDec(A_pos pos, A_nametyList type);
+A_decList A_DecList(A_dec head, A_decList tail);
 
 A_ty A_NameTy(A_pos pos, S_symbol name);
 A_ty A_RecordTy(A_pos pos, A_fieldList record);
@@ -241,8 +242,6 @@ A_expList A_ExpList(A_exp head, A_expList tail);
 A_fundec A_Fundec(A_pos pos, S_symbol name, A_fieldList params, S_symbol result,
 		  A_exp body);
 A_fundecList A_FundecList(A_fundec head, A_fundecList tail);
-
-A_decList A_DecList(A_dec head, A_decList tail);
 
 A_namety A_Namety(S_symbol name, A_ty ty);
 A_nametyList A_NametyList(A_namety head, A_nametyList tail);

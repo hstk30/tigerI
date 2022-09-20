@@ -2,6 +2,7 @@
 *.a
 *.so
 *.dSYM
+*.log
 .DS_Store
 .tags
 
@@ -14,4 +15,5 @@ y.tab.h
 lex.yy.c
 
 lextest
+prabsyn
 
