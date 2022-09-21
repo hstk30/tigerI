@@ -23,6 +23,14 @@ struct expty transExp(S_table venv, S_table tenv, A_exp a);
 void transDec(S_table venv, S_table tenv, A_dec d);
 Ty_ty transTy(S_table tenv, A_ty a);
 
+/*
+ * skip all `Ty_name` type
+ */ 
+static Ty_ty
+actual_ty(Ty_ty ty) {
+
+}
+
 
 static struct expty 
 transOpExp(S_table venv, S_table tenv, A_exp opexp) {
@@ -58,28 +66,31 @@ transOpExp(S_table venv, S_table tenv, A_exp opexp) {
     }
 }
 
+/* 
+ * 1. call return value
+ * 2. args type check
+ */
 static struct expty
 transCallExp(S_table venv, S_table tenv, A_exp call_exp) {
-    /* 1. call return value
-     * 2. args type check
-     */
     return expTy(NULL, Ty_Void());
 }
 
+/* 
+ * 1. look up record type get `A_fieldList record` 
+ * 2. check `A_field.name`  with `A_efield.name`
+ * 3. check `A_field.typ` with `A_efield.exp`
+ */
 static struct expty
 transRecodeExp(S_table venv, S_table tenv, A_exp record_exp) {
-    /* 1. look up record type get `A_fieldList record` 
-     * 2. check `A_field.name`  with `A_efield.name`
-     * 3. check `A_field.typ` with `A_efield.exp`
-     */
     return expTy(NULL, Ty_Void());
 }
 
+/* 
+ * 1. look up array type 
+ * 2. check `size` is `int` and `init` type is right
+ */
 static struct expty
 transArrayExp(S_table venv, S_table tenv, A_exp record_exp) {
-    /* 1. look up array type 
-     * 2. check `size` is `int` and `init` type is right
-     */
     return expTy(NULL, Ty_Void());
 }
 
@@ -143,12 +154,25 @@ transForExp(S_table venv, S_table tenv, A_exp for_exp) {
     return ret_expty;
 }
 
+/* 
+ * 1. enter dec to the venv and tenv
+ * 2. trans body
+ */
 static struct expty
 transLetExp(S_table venv, S_table tenv, A_exp let_exp) {
-    /* 1. enter dec to the venv and tenv
-     * 2. trans body
-     */
-    return expTy(NULL, Ty_Void());
+    struct expty body_expty;
+    A_decList d;
+
+    S_beginScope(venv);
+    S_beginScope(tenv);
+    for (d = let_exp->u.let.decs; d; d = d->tail) {
+        transDec(venv, tenv, d->head);
+    }
+    body_expty = transExp(venv, tenv, let_exp->u.let.body);
+    S_endScope(tenv);
+    S_endScope(venv);
+
+    return body_expty;
 }
 
 struct expty transVar(S_table venv, S_table tenv, A_var v) {
@@ -190,12 +214,111 @@ struct expty transExp(S_table venv, S_table tenv, A_exp a) {
     }
 }
 
-void transDec(S_table venv, S_table tenv, A_dec d) {
-
+static void
+transVarDec(S_table venv, S_table tenv, A_dec var_dec) {
+    struct expty init_expty = transExp(venv, tenv, var_dec->u.var.init);
+    return ;
 }
 
-Ty_ty transTy(S_table tenv, A_ty a) {
+/*
+ * iter `params` 
+ * `A_field.typ` -> `Ty_ty`
+ */
+static Ty_tyList
+makeFormalTyList(S_table tenv, A_fieldList params) {
+    if (params == NULL) {
+        return NULL;
+    }
+    Ty_ty param_ty = S_look(tenv, params->head->typ);
+    if (param_ty == NULL) {
+        EM_error(params->head->pos, "Type %s use before declare", params->head->typ);
+    }
+    return Ty_TyList(param_ty, makeFormalTyList(tenv, params->tail));
+}
 
+/* 
+ * test6.tig test7.tig
+ * iter func_dec->u.function
+ * `A_fundec->params` -> `E_enventry->u.fun.formals`
+ * `A_fundec->result` -> `E_enventry->u.fun.results`
+ * enter param to function scope
+ * transExp(body)
+ * TODO: recursion function dec
+ */
+static void
+transFuncDec(S_table venv, S_table tenv, A_dec func_dec) {
+    A_fundecList fl;
+    A_fundec f;
+    Ty_ty result_ty = NULL;
+    Ty_tyList formal_tys = NULL;
+    struct expty body_expty;
+
+    for (fl = func_dec->u.function; fl; fl = fl->tail) {
+        f = fl->head;
+        formal_tys = makeFormalTyList(tenv, f->params);
+        if (f->result) {
+            result_ty = S_look(tenv, f->result);
+        }
+        S_enter(venv, f->name, E_FunEntry(formal_tys, result_ty));
+
+        S_beginScope(venv);
+        if (f->params && formal_tys) {
+            A_fieldList l;
+            Ty_tyList t;
+            for (l = f->params, t = formal_tys; l; l = l->tail, t = t->tail) {
+                S_enter(venv, l->head->name, E_VarEntry(t->head));
+            }
+        }
+        body_expty = transExp(venv, tenv, f->body);
+        if (f->result && body_expty.ty->kind != result_ty->kind) {
+            EM_error(func_dec->pos, "Function declared return type dimatch with body");
+        }
+        S_endScope(venv);
+    }
+
+    return ;
+}
+
+/* 
+ * test5.tig
+ * iter `A_dec.u.type` twice to handle recursion
+ */
+static void
+transTyDec(S_table venv, S_table tenv, A_dec ty_dec) {
+    A_nametyList tl;
+    Ty_ty temp_ty;
+
+    for (tl = ty_dec->u.type; tl; tl = ty_dec->u.type->tail) {
+        temp_ty = transTy(tenv, tl->head->ty);
+        S_enter(tenv, tl->head->name, temp_ty);
+    }
+}
+
+void transDec(S_table venv, S_table tenv, A_dec d) {
+    switch (d->kind) {
+        case A_varDec: return transVarDec(venv, tenv, d);
+        case A_functionDec: return transFuncDec(venv, tenv, d);
+        case A_typeDec: return transTyDec(venv, tenv, d);
+        default: assert(0);
+    }
+}
+
+Ty_ty transTy(S_table tenv, A_ty t) {
+    switch (t->kind) {
+        case A_nameTy: {
+            Ty_ty name_ty = S_look(tenv, t->u.name);
+            if (name_ty == NULL) {
+                return Ty_Name(t->u.name, NULL);
+            } else {
+                return name_ty;
+            }
+        }
+        case A_recordTy: {
+
+        }
+        case A_arrayTy:
+        default: assert(0);
+    }
 }
 
 void SEM_transProg(A_exp exp) {

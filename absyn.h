@@ -66,6 +66,8 @@ struct A_exp_ {
     union {
         A_var var;    /* a */
         /* nil; - needs only the pos and kind */
+        int intt;   /* 1 */
+        string stringg; /* "123" */ 
         struct {S_symbol func; A_expList args;} call; /* func(args) */
         struct {A_oper oper; A_exp left; A_exp right;} op;    /* a + b */
         struct {S_symbol typ; A_efieldList fields;} record;   /* list{a=1, b=2} */
@@ -89,10 +91,10 @@ struct A_dec_ {
     } kind;
     A_pos pos;
     union {
-        A_fundecList function;
+        A_fundecList function;  /* for mul-recursion function */
         /* escape may change after the initial declaration */
         struct {S_symbol var; S_symbol typ; A_exp init; bool escape;} var; 
-        A_nametyList type;
+        A_nametyList type;  /* for mul-recursion type */
     } u;
 };
 
@@ -105,8 +107,8 @@ struct A_ty_ {
     A_pos pos;
     union {
         S_symbol name;  /* type type_id = ty */
-        A_fieldList record; /* { tyfields } */
-        S_symbol array; /* array of type_id */
+        A_fieldList record; /* type type_id = { tyfields } */
+        S_symbol array; /* type type_id = array of type_id */
     } u;
 };
 
