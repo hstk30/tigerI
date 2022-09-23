@@ -1,0 +1,21 @@
+let
+    function fib(t: int): int = 
+        if (t < 2)
+        then t
+        else fib(t - 1) + fib(t - 2)
+
+    var a:int := 1
+
+    function f(i: int): int = 
+        if (i < 2)
+        then 1
+        else g(i - 1)
+    function g(i: int): int = 
+        if (i < 2)
+        then 2
+        else f(i - 2)
+in
+    fib(5);
+    f(5)
+end
+
