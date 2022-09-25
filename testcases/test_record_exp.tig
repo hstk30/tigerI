@@ -1,8 +1,10 @@
 let 
     type record1 = {a: int, b: int}
     type record2 = {a: record1, b: record1}
+    type same_record1 = record1
 
     var v := record2{a=record1{a=1, b=2}, b=record1{a=11, b=22}}
+    var a: same_record1 = record1{a=1, b=2}
 in
-    v
+    v.a.a
 end
