@@ -1,0 +1,8 @@
+let 
+    type record1 = {a: int, b: int}
+    type record2 = {a: record1, b: record1}
+
+    var v := record2{a=record1{a=1, b=2}, b=record1{a=11, b=22}}
+in
+    v
+end

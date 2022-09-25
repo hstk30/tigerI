@@ -26,7 +26,6 @@ Ty_ty transTy(S_table tenv, A_ty a);
 /*
  * test16.tig
  * skip all `Ty_name` type
- * TODO: recognize recursion type dec?
  */ 
 static Ty_ty
 actual_ty(Ty_ty ty) {
@@ -37,48 +36,88 @@ actual_ty(Ty_ty ty) {
     return actual;
 }
 
-
 static struct expty 
 transOpExp(S_table venv, S_table tenv, A_exp opexp) {
     A_oper oper = opexp->u.op.oper;
     struct expty left_expty = transExp(venv, tenv, opexp->u.op.left);
     struct expty right_expty = transExp(venv, tenv, opexp->u.op.right);
     struct expty ret_expty = expTy(NULL, Ty_Int());
+
     switch (oper) {
         case A_plusOp: 
         case A_minusOp:
         case A_timesOp:
-        case A_divideOp:
+        case A_divideOp: {
             /* TODO: divide zero error */
             if (left_expty.ty->kind != Ty_int) 
-                EM_error(opexp->u.op.left->pos, "Opexp clause integer required");
+                EM_error(opexp->u.op.left->pos, "Opexp `+ - * /` clause integer required");
             if (right_expty.ty->kind != Ty_int) 
-                EM_error(opexp->u.op.right->pos, "Opexp clause integer required");
+                EM_error(opexp->u.op.right->pos, "Opexp `+ - * /` clause integer required");
             return ret_expty;
+         }
         case A_ltOp:
         case A_leOp:
         case A_gtOp:
-        case A_geOp:
+        case A_geOp: {
             if (left_expty.ty->kind != Ty_int || right_expty.ty->kind != Ty_int) {
-                EM_error(opexp->pos, "Opexp clause integer required");
+                EM_error(opexp->pos, "Opexp `< <= > >=`clause integer required");
             }
             return ret_expty;
+        }
         case A_eqOp:
         case A_neqOp: {
-            /* TODO: eq, neq can apply to `record` `array` `string`, also `nil` */
+            /* TODO: eq, neq can apply to `record` `array` `string`, also `nil` 
+             * Does `void` need special handle? */
+            if ((left_expty.ty->kind == Ty_nil && right_expty.ty->kind == Ty_record) ||
+                    (left_expty.ty->kind == Ty_record && right_expty.ty->kind== Ty_nil)) {
+                return ret_expty;
+            }
+            if (left_expty.ty->kind != right_expty.ty->kind) {
+                EM_error(opexp->pos, "Opexp `<> =` clause type dismatch");
+            }
             return ret_expty;
         }
         default: assert(0);
     }
 }
 
+static void
+checkArgs(S_table venv, S_table tenv,  A_expList args, Ty_tyList formals, int pos) {
+    if ((args == NULL && formals != NULL) ||
+            (args != NULL && formals == NULL)) {
+        EM_error(pos, "Function call args inconsistent with declare");
+        return ;
+    }
+    if (args == NULL && formals == NULL) {
+        return ;
+    }
+
+    struct expty arg_expty = transExp(venv, tenv, args->head);
+    if (arg_expty.ty->kind != formals->head->kind) {
+        EM_error(args->head->pos, "Function call args type dismatch");
+    }
+    return checkArgs(venv, tenv, args->tail, formals->tail, pos);
+}
+
 /* 
- * 1. call return value
- * 2. args type check
+ * 1. args type check
+ * 2. call return value
  */
 static struct expty
 transCallExp(S_table venv, S_table tenv, A_exp call_exp) {
-    return expTy(NULL, Ty_Void());
+    E_enventry func = S_look(venv, call_exp->u.call.func);
+
+    if (func == NULL) {
+        EM_error(call_exp->pos, "Function %s use before declare", S_name(call_exp->u.call.func));
+        return expTy(NULL, Ty_Void());
+    }
+    checkArgs(venv, tenv, call_exp->u.call.args, func->u.fun.formals, call_exp->pos);
+
+    if (func->u.fun.results == NULL) {
+        return expTy(NULL, Ty_Void());
+    } else {
+        return expTy(NULL, actual_ty(func->u.fun.results));
+    }
 }
 
 /* 
@@ -86,8 +125,43 @@ transCallExp(S_table venv, S_table tenv, A_exp call_exp) {
  * 2. check `A_field.name`  with `A_efield.name`
  * 3. check `A_field.typ` with `A_efield.exp`
  */
+static void 
+checkRecordExp(S_table venv, S_table tenv, A_efieldList kv, Ty_fieldList kt, int pos) {
+    if ((kv == NULL && kt != NULL) ||
+            (kv != NULL && kt == NULL)) {
+        EM_error(pos, "Record create inconsistent with declare");
+        return ;
+    }
+    if (kv == NULL && kt == NULL) {
+        return ;
+    }
+
+    if (kv->head->name != kt->head->name) {
+        EM_error(pos, "Record key %s inconsistent with declare %s", S_name(kv->head->name), S_name(kt->head->name));
+    }
+
+    struct expty val_expty = transExp(venv, tenv, kv->head->exp);
+    if (val_expty.ty->kind != actual_ty(kt->head->ty)->kind) {
+
+    }
+
+
+}
+
 static struct expty
 transRecodeExp(S_table venv, S_table tenv, A_exp record_exp) {
+    Ty_ty ty_env = S_look(tenv, record_exp->u.record.typ);
+    A_efieldList 
+
+    if (ty_env == NULL || actual_ty(ty_env)->kind != Ty_record) {
+        EM_error(record_exp->pos, "Record type %s use before declare", S_name(record_exp->u.record.typ));
+        return expTy(NULL, Ty_Nil());
+    }
+
+
+
+
+
     return expTy(NULL, Ty_Void());
 }
 
@@ -301,26 +375,37 @@ makeFormalTyList(S_table tenv, A_fieldList params) {
  */
 static void
 transFuncDec(S_table venv, S_table tenv, A_dec func_dec) {
-    A_fundecList fl;
     A_fundec f;
-    Ty_ty result_ty = NULL;
+    A_fundecList fl;
+    A_fieldList params = NULL;
     Ty_tyList formal_tys = NULL;
+    Ty_ty result_ty = NULL;
+    E_enventry func_entry = NULL;
     struct expty body_expty;
 
+    /* first time collect function head info */
     for (fl = func_dec->u.function; fl; fl = fl->tail) {
         f = fl->head;
         formal_tys = makeFormalTyList(tenv, f->params);
         if (f->result) {
             result_ty = S_look(tenv, f->result);
+            if (result_ty == NULL) {
+                EM_error(f->pos, "Function return type %s use before declare", S_name(f->result));
+            }
         }
         S_enter(venv, f->name, E_FunEntry(formal_tys, result_ty));
+    }
 
+    /* second time handle function body */
+    for (fl = func_dec->u.function; fl; fl = fl->tail) {
+        f = fl->head;
+        func_entry = S_look(venv, f->name);
         S_beginScope(venv);
-        if (f->params && formal_tys) {
-            A_fieldList l;
-            Ty_tyList t;
-            for (l = f->params, t = formal_tys; l; l = l->tail, t = t->tail) {
-                S_enter(venv, l->head->name, E_VarEntry(t->head));
+        params = f->params;
+        formal_tys= func_entry->u.fun.formals;
+        if (params && formal_tys) {
+            for (; params; params = params->tail, formal_tys = formal_tys->tail) {
+                S_enter(venv, params->head->name, E_VarEntry(formal_tys->head));
             }
         }
         body_expty = transExp(venv, tenv, f->body);
