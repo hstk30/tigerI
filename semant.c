@@ -18,6 +18,9 @@ struct expty expTy(Tr_exp exp, Ty_ty ty) {
     return e;
 }
 
+/*
+ * return actual type which without `Ty_Name`
+ */ 
 struct expty transVar(S_table venv, S_table tenv, A_var v);
 struct expty transExp(S_table venv, S_table tenv, A_exp a);
 void transDec(S_table venv, S_table tenv, A_dec d);
@@ -39,11 +42,14 @@ actual_ty(Ty_ty ty) {
 
 static bool
 type_equal(Ty_ty t1, Ty_ty t2) {
-    if ((t1->kind == Ty_record && t2->kind == Ty_nil) ||
-            (t1->kind == Ty_nil && t2->kind == Ty_record)) {
+    Ty_ty a1 = actual_ty(t1);
+    Ty_ty a2 = actual_ty(t2);
+
+    if ((a1->kind == Ty_record && a2->kind == Ty_nil) ||
+            (a1->kind == Ty_nil && a2->kind == Ty_record)) {
         return TRUE;
     }
-    return (t1 == t2);
+    return (a1 == a2);
 }
 
 static struct expty 
@@ -76,13 +82,8 @@ transOpExp(S_table venv, S_table tenv, A_exp opexp) {
         }
         case A_eqOp:
         case A_neqOp: {
-            /* TODO: eq, neq can apply to `record` `array` `string`, also `nil` 
-             * Does `void` need special handle? */
-            if ((left_expty.ty->kind == Ty_nil && right_expty.ty->kind == Ty_record) ||
-                    (left_expty.ty->kind == Ty_record && right_expty.ty->kind== Ty_nil)) {
-                return ret_expty;
-            }
-            if (left_expty.ty->kind != right_expty.ty->kind) {
+             /* Does `void` need special handle? */
+            if (!type_equal(left_expty.ty, right_expty.ty)) {
                 EM_error(opexp->pos, "Opexp `<> =` clause type dismatch");
             }
             return ret_expty;
@@ -103,7 +104,7 @@ checkArgs(S_table venv, S_table tenv,  A_expList args, Ty_tyList formals, int po
     }
 
     struct expty arg_expty = transExp(venv, tenv, args->head);
-    if (arg_expty.ty->kind != formals->head->kind) {
+    if (!type_equal(arg_expty.ty, formals->head)) {
         EM_error(args->head->pos, "Function call args type dismatch");
     }
     return checkArgs(venv, tenv, args->tail, formals->tail, pos);
@@ -151,7 +152,7 @@ checkRecordExp(S_table venv, S_table tenv, A_efieldList kv, Ty_fieldList kt, int
     }
 
     struct expty val_expty = transExp(venv, tenv, kv->head->exp);
-    if (val_expty.ty->kind != actual_ty(kt->head->ty)->kind) {
+    if (!type_equal(val_expty.ty, kt->head->ty)) {
         EM_error(kv->head->exp->pos, "Record value type inconsistent with declare");
     }
     return checkRecordExp(venv, tenv, kv->tail, kt->tail, pos);
@@ -165,7 +166,7 @@ transRecodeExp(S_table venv, S_table tenv, A_exp record_exp) {
         EM_error(record_exp->pos, "Record type %s use before declare", S_name(record_exp->u.record.typ));
         return expTy(NULL, Ty_Nil());
     }
-    if (actual_ty(record_ty)->kind != Ty_record) {
+    if (record_ty->kind != Ty_record) {
         EM_error(record_exp->pos, "Expect record type before `{...}`");
         return expTy(NULL, Ty_Nil());
     }
@@ -185,7 +186,7 @@ transArrayExp(S_table venv, S_table tenv, A_exp array_exp) {
         EM_error(array_exp->pos, "Array type %s use before declare", S_name(array_exp->u.array.typ));
         return expTy(NULL, Ty_Array(Ty_Int()));
     }
-    if (actual_ty(array_ty)->kind != Ty_array) {
+    if (array_ty->kind != Ty_array) {
         EM_error(array_exp->pos, "Expect array type before `[exp] of exp`");
         return expTy(NULL, Ty_Array(Ty_Int()));
     }
@@ -197,7 +198,7 @@ transArrayExp(S_table venv, S_table tenv, A_exp array_exp) {
     }
 
     struct expty init_expty = transExp(venv, tenv, array_exp->u.array.init);
-    if (init_expty.ty->kind != actual_ty(array_ty)->kind) {
+    if (!type_equal(init_expty.ty, array_ty->u.array)) {
         EM_error(array_exp->pos, "Array init clause type dismatch");
         return expTy(NULL, Ty_Array(Ty_Int()));
     }
@@ -209,21 +210,17 @@ static struct expty
 transAssignExp(S_table venv, S_table tenv, A_exp assign_exp) {
     struct expty var_expty = transVar(venv, tenv, assign_exp->u.assign.var); 
     struct expty val_expty = transExp(venv, tenv, assign_exp->u.assign.exp); 
-    Ty_ty var_ty = actual_ty(var_expty.ty);
-    struct expty ret_expty = expTy(NULL, Ty_Void());
 
     /* var a : my_record := nil */
-    if (var_ty->kind == Ty_record && val_expty.ty->kind == Ty_nil) {
-        return ret_expty;
-    }
     /* consider: 
      * a := my_record{a=1, b=2} 
      * not compare `kind` but `ty`
      */
-    if (var_ty != val_expty.ty) {
+    if (!type_equal(var_expty.ty, val_expty.ty)) {
         EM_error(assign_exp->pos, "Assign clause type dismatch");
     }
-    return ret_expty;
+
+    return expTy(NULL, Ty_Void());
 }
 
 static struct expty
@@ -236,7 +233,7 @@ transIfExp(S_table venv, S_table tenv, A_exp if_exp) {
     struct expty then_expty = transExp(venv, tenv, if_exp->u.iff.then);
     if (if_exp->u.iff.elsee) {
         struct expty else_expty = transExp(venv, tenv, if_exp->u.iff.elsee);
-        if (then_expty.ty->kind != else_expty.ty->kind) {
+        if (!type_equal(then_expty.ty, else_expty.ty)) {
             EM_error(if_exp->pos, "IF THEN ELSE clause THEN ELSE type dismatch");
             return expTy(NULL, Ty_Void());
         } else {
@@ -316,7 +313,7 @@ transSimpleVar(S_table venv, S_table tenv, A_var simple_var) {
     E_enventry x = S_look(venv, simple_var->u.simple);
 
     if (x && x->kind == E_varEntry) {
-        return expTy(NULL, x->u.var.ty);
+        return expTy(NULL, actual_ty(x->u.var.ty));
     } else {
         EM_error(simple_var->pos, "Variable %s use before declare", S_name(simple_var->u.simple));
         /* default int ? */
@@ -330,17 +327,16 @@ transSimpleVar(S_table venv, S_table tenv, A_var simple_var) {
 static struct expty
 transFieldVar(S_table venv, S_table tenv, A_var field_var) {
     struct expty record_expty = transVar(venv, tenv, field_var->u.field.var);
-    Ty_ty record_ty = actual_ty(record_expty.ty);
 
-    if (record_ty->kind != Ty_record) {
+    if (record_expty.ty->kind != Ty_record) {
         EM_error(field_var->pos, "Record field operate <type: record> required");
         return expTy(NULL, Ty_Int());
     }
 
     Ty_fieldList iter;
-    for (iter = record_ty->u.record; iter; iter = iter->tail) {
+    for (iter = record_expty.ty->u.record; iter; iter = iter->tail) {
         if (iter->head->name == field_var->u.field.sym) {
-            return expTy(NULL, iter->head->ty);
+            return expTy(NULL, actual_ty(iter->head->ty));
         }
     }
 
@@ -354,9 +350,8 @@ transFieldVar(S_table venv, S_table tenv, A_var field_var) {
 static struct expty
 transSubscriptVar(S_table venv, S_table tenv, A_var subscript_var) {
     struct expty array_expty = transVar(venv, tenv, subscript_var->u.subscript.var);
-    Ty_ty array_ty = actual_ty(array_expty.ty);
 
-    if (array_ty->kind != Ty_array) {
+    if (array_expty.ty->kind != Ty_array) {
         EM_error(subscript_var->pos, "Array subscript operate <type: array> required");
         return expTy(NULL, Ty_Int());
     }
@@ -366,50 +361,7 @@ transSubscriptVar(S_table venv, S_table tenv, A_var subscript_var) {
         EM_error(subscript_var->pos, "Array index <type: int> required");
         return expTy(NULL, Ty_Int());
     }
-    return expTy(NULL, array_ty->u.array);
-}
-
-/*
- * return ty not guarantee actual ty
- */
-struct expty transVar(S_table venv, S_table tenv, A_var v) {
-    switch (v->kind) {
-        case A_simpleVar: return transSimpleVar(venv, tenv, v);
-        case A_fieldVar: return transFieldVar(venv, tenv, v);
-        case A_subscriptVar: return transSubscriptVar(venv, tenv, v);
-        default: assert(0);
-    }
-}
-
-/*
- * return actual type which without `Ty_Name`
- */ 
-struct expty transExp(S_table venv, S_table tenv, A_exp a) {
-    switch (a->kind) {
-        case A_varExp: return transVar(venv, tenv, a->u.var);
-        case A_nilExp: return expTy(NULL, Ty_Nil());
-        case A_intExp: return expTy(NULL, Ty_Int());
-        case A_stringExp: return expTy(NULL, Ty_String());
-        case A_callExp: return transCallExp(venv, tenv, a);
-        case A_opExp: return transOpExp(venv, tenv, a);
-        case A_recordExp: return transRecodeExp(venv, tenv, a);
-        case A_arrayExp: return transArrayExp(venv, tenv, a);
-        case A_seqExp: {
-            A_expList el;
-            struct expty last_expty;
-            for (el = a->u.seq; el; el = el->tail) {
-                last_expty = transExp(venv, tenv, el->head);
-            }
-            return expTy(NULL, actual_ty(last_expty.ty));
-        }
-        case A_assignExp: return transAssignExp(venv, tenv, a);
-        case A_ifExp: return transIfExp(venv, tenv, a);
-        case A_whileExp: return transWhileExp(venv, tenv, a);
-        case A_forExp: return transForExp(venv, tenv, a);
-        case A_breakExp: return expTy(NULL, Ty_Void());  /* check used by `while` `for` */
-        case A_letExp: return transLetExp(venv, tenv, a);
-        default: assert(0);
-    }
+    return expTy(NULL, actual_ty(array_expty.ty->u.array));
 }
 
 static void
@@ -419,13 +371,15 @@ transVarDec(S_table venv, S_table tenv, A_dec var_dec) {
 
     if (var_dec->u.var.typ) {
         var_ty = S_look(tenv, var_dec->u.var.typ);
-        if (actual_ty(var_ty)->kind != init_expty.ty->kind) {
-            EM_error(var_dec->pos, )
+        if (var_ty == NULL) {
+            EM_error(var_dec->pos, "Type %s use before declare", S_name(var_dec->u.var.typ));
         }
-        
-    }
+        if (!type_equal(var_ty, init_expty.ty)) {
+            EM_error(var_dec->pos, "Variable init type dismatch");
+        }
+    } 
 
-    S_enter(venv, var_dec->u.var.var, E_VarEntry());
+    S_enter(venv, var_dec->u.var.var, E_VarEntry(init_expty.ty));
 
     return ;
 }
@@ -442,7 +396,7 @@ makeFormalTyList(S_table tenv, A_fieldList params) {
     }
     Ty_ty param_ty = S_look(tenv, params->head->typ);
     if (param_ty == NULL) {
-        EM_error(params->head->pos, "Type %s use before declare", params->head->typ);
+        EM_error(params->head->pos, "Type %s use before declare", S_name(params->head->typ));
     }
     return Ty_TyList(param_ty, makeFormalTyList(tenv, params->tail));
 }
@@ -454,7 +408,6 @@ makeFormalTyList(S_table tenv, A_fieldList params) {
  * `A_fundec->result` -> `E_enventry->u.fun.results`
  * enter param to function scope
  * transExp(body)
- * TODO: recursion function dec
  */
 static void
 transFuncDec(S_table venv, S_table tenv, A_dec func_dec) {
@@ -531,15 +484,6 @@ transTyDec(S_table venv, S_table tenv, A_dec ty_dec) {
     }
 }
 
-void transDec(S_table venv, S_table tenv, A_dec d) {
-    switch (d->kind) {
-        case A_varDec: return transVarDec(venv, tenv, d);
-        case A_functionDec: return transFuncDec(venv, tenv, d);
-        case A_typeDec: return transTyDec(venv, tenv, d);
-        default: assert(0);
-    }
-}
-
 static Ty_ty
 transNameTy(S_table tenv, A_ty name_ty) {
     Ty_ty t = S_look(tenv, name_ty->u.name);
@@ -547,7 +491,7 @@ transNameTy(S_table tenv, A_ty name_ty) {
         if (t->kind != Ty_name || t->u.name.ty) {
             /* type my_record = {a: int, b: int}
              * type my_record2 = my_record
-             * `my_record` is the same as `my_record2`
+             * type_equal(my_record, my_record2) == 1
              */
             return Ty_Name(name_ty->u.name, t);
         } else {
@@ -597,6 +541,52 @@ transArrayTy(S_table tenv, A_ty array_ty) {
         return Ty_Array(Ty_Int());
     }
     return Ty_Array(t);
+}
+
+struct expty transExp(S_table venv, S_table tenv, A_exp a) {
+    switch (a->kind) {
+        case A_varExp: return transVar(venv, tenv, a->u.var);
+        case A_nilExp: return expTy(NULL, Ty_Nil());
+        case A_intExp: return expTy(NULL, Ty_Int());
+        case A_stringExp: return expTy(NULL, Ty_String());
+        case A_callExp: return transCallExp(venv, tenv, a);
+        case A_opExp: return transOpExp(venv, tenv, a);
+        case A_recordExp: return transRecodeExp(venv, tenv, a);
+        case A_arrayExp: return transArrayExp(venv, tenv, a);
+        case A_seqExp: {
+            A_expList el;
+            struct expty last_expty;
+            for (el = a->u.seq; el; el = el->tail) {
+                last_expty = transExp(venv, tenv, el->head);
+            }
+            return expTy(NULL, actual_ty(last_expty.ty));
+        }
+        case A_assignExp: return transAssignExp(venv, tenv, a);
+        case A_ifExp: return transIfExp(venv, tenv, a);
+        case A_whileExp: return transWhileExp(venv, tenv, a);
+        case A_forExp: return transForExp(venv, tenv, a);
+        case A_breakExp: return expTy(NULL, Ty_Void());  /* check used by `while` `for` */
+        case A_letExp: return transLetExp(venv, tenv, a);
+        default: assert(0);
+    }
+}
+
+struct expty transVar(S_table venv, S_table tenv, A_var v) {
+    switch (v->kind) {
+        case A_simpleVar: return transSimpleVar(venv, tenv, v);
+        case A_fieldVar: return transFieldVar(venv, tenv, v);
+        case A_subscriptVar: return transSubscriptVar(venv, tenv, v);
+        default: assert(0);
+    }
+}
+
+void transDec(S_table venv, S_table tenv, A_dec d) {
+    switch (d->kind) {
+        case A_varDec: return transVarDec(venv, tenv, d);
+        case A_functionDec: return transFuncDec(venv, tenv, d);
+        case A_typeDec: return transTyDec(venv, tenv, d);
+        default: assert(0);
+    }
 }
 
 Ty_ty transTy(S_table tenv, A_ty t) {
