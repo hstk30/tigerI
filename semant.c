@@ -163,13 +163,13 @@ checkRecordExp(S_table venv, S_table tenv, A_efieldList kv, Ty_fieldList kt, int
 
 static struct expty
 transRecodeExp(S_table venv, S_table tenv, A_exp record_exp) {
-    Ty_ty deced_ty = S_look(tenv, record_exp->u.record.typ);
-    Ty_ty record_ty = actual_ty(deced_ty);
+    Ty_ty deced_ty = S_look(tenv, record_exp->u.record.typ), record_ty;
 
     if (deced_ty == NULL) {
         EM_error(record_exp->pos, "Record type %s use before declare", S_name(record_exp->u.record.typ));
         return expTy(NULL, Ty_Nil());
     }
+    record_ty = actual_ty(deced_ty);
     if (record_ty->kind != Ty_record) {
         EM_error(record_exp->pos, "Expect record type before `{...}`");
         return expTy(NULL, Ty_Nil());
@@ -185,13 +185,14 @@ transRecodeExp(S_table venv, S_table tenv, A_exp record_exp) {
  */
 static struct expty
 transArrayExp(S_table venv, S_table tenv, A_exp array_exp) {
-    Ty_ty deced_ty = S_look(tenv, array_exp->u.array.typ);
-    Ty_ty array_ty = actual_ty(deced_ty);
+    Ty_ty deced_ty = S_look(tenv, array_exp->u.array.typ), array_ty;
 
     if (deced_ty == NULL) {
         EM_error(array_exp->pos, "Array type %s use before declare", S_name(array_exp->u.array.typ));
         return expTy(NULL, Ty_Array(Ty_Int()));
     }
+
+    array_ty = actual_ty(deced_ty);
     if (array_ty->kind != Ty_array) {
         EM_error(array_exp->pos, "Expect array type before `[exp] of exp`");
         return expTy(NULL, Ty_Array(Ty_Int()));
@@ -552,6 +553,24 @@ transArrayTy(S_table tenv, A_ty array_ty) {
     return Ty_Array(t);
 }
 
+/*
+ * `()` `(a <> nul)` `(s1; s2; s3)` all be `seqexp`
+ */
+static struct expty
+transSeqExp(S_table venv, S_table tenv, A_exp seq_exp) {
+    A_expList el;
+    struct expty last_expty;
+    
+    if (seq_exp->u.seq == NULL) {
+        return expTy(NULL, Ty_Void());
+    } else {
+        for (el = seq_exp->u.seq; el; el = el->tail) {
+            last_expty = transExp(venv, tenv, el->head);
+        }
+        return expTy(NULL, actual_ty(last_expty.ty));
+    }
+}
+
 struct expty transExp(S_table venv, S_table tenv, A_exp a) {
     switch (a->kind) {
         case A_varExp: return transVar(venv, tenv, a->u.var);
@@ -562,14 +581,7 @@ struct expty transExp(S_table venv, S_table tenv, A_exp a) {
         case A_opExp: return transOpExp(venv, tenv, a);
         case A_recordExp: return transRecodeExp(venv, tenv, a);
         case A_arrayExp: return transArrayExp(venv, tenv, a);
-        case A_seqExp: {
-            A_expList el;
-            struct expty last_expty;
-            for (el = a->u.seq; el; el = el->tail) {
-                last_expty = transExp(venv, tenv, el->head);
-            }
-            return expTy(NULL, actual_ty(last_expty.ty));
-        }
+        case A_seqExp: return transSeqExp(venv, tenv, a);
         case A_assignExp: return transAssignExp(venv, tenv, a);
         case A_ifExp: return transIfExp(venv, tenv, a);
         case A_whileExp: return transWhileExp(venv, tenv, a);
