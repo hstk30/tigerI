@@ -20,6 +20,7 @@ struct expty expTy(Tr_exp exp, Ty_ty ty) {
 
 /*
  * return actual type which without `Ty_Name`
+ * NOTE: returned by `S_look` from `tenv` need process by `actual_ty()`
  */ 
 struct expty transVar(S_table venv, S_table tenv, A_var v);
 struct expty transExp(S_table venv, S_table tenv, A_exp a);
@@ -34,7 +35,7 @@ Ty_ty transTy(S_table tenv, A_ty a);
 static Ty_ty
 actual_ty(Ty_ty ty) {
     Ty_ty actual = ty;
-    while (actual->kind != Ty_name) {
+    while (actual->kind == Ty_name) {
         actual = actual->u.name.ty;
     }
     return actual;
@@ -147,6 +148,7 @@ checkRecordExp(S_table venv, S_table tenv, A_efieldList kv, Ty_fieldList kt, int
         return ;
     }
 
+    /* TODO: test_record_exp.tig */
     if (kv->head->name != kt->head->name) {
         EM_error(pos, "Record key name %s inconsistent with declare %s", S_name(kv->head->name), S_name(kt->head->name));
     }
@@ -166,7 +168,7 @@ transRecodeExp(S_table venv, S_table tenv, A_exp record_exp) {
         EM_error(record_exp->pos, "Record type %s use before declare", S_name(record_exp->u.record.typ));
         return expTy(NULL, Ty_Nil());
     }
-    if (record_ty->kind != Ty_record) {
+    if (actual_ty(record_ty)->kind != Ty_record) {
         EM_error(record_exp->pos, "Expect record type before `{...}`");
         return expTy(NULL, Ty_Nil());
     }
@@ -186,7 +188,7 @@ transArrayExp(S_table venv, S_table tenv, A_exp array_exp) {
         EM_error(array_exp->pos, "Array type %s use before declare", S_name(array_exp->u.array.typ));
         return expTy(NULL, Ty_Array(Ty_Int()));
     }
-    if (array_ty->kind != Ty_array) {
+    if (actual_ty(array_ty)->kind != Ty_array) {
         EM_error(array_exp->pos, "Expect array type before `[exp] of exp`");
         return expTy(NULL, Ty_Array(Ty_Int()));
     }
@@ -198,7 +200,8 @@ transArrayExp(S_table venv, S_table tenv, A_exp array_exp) {
     }
 
     struct expty init_expty = transExp(venv, tenv, array_exp->u.array.init);
-    if (!type_equal(init_expty.ty, array_ty->u.array)) {
+    /* NOTE: array items type compare `array_ty->u.array` instead of `array_ty` */
+    if (!type_equal(init_expty.ty, actual_ty(array_ty)->u.array)) {
         EM_error(array_exp->pos, "Array init clause type dismatch");
         return expTy(NULL, Ty_Array(Ty_Int()));
     }
@@ -464,7 +467,7 @@ transTyDec(S_table venv, S_table tenv, A_dec ty_dec) {
     Ty_ty t1, t2;
 
     /* first time just add name to `tenv` */
-    for (iter = ty_dec->u.type; iter; iter = ty_dec->u.type->tail) {
+    for (iter = ty_dec->u.type; iter; iter = iter->tail) {
         t1 = S_look(tenv, iter->head->name);
         if (t1 && t1->kind != Ty_name) {
             /* In fact, temp_ty just will be int string or nil */
@@ -475,7 +478,7 @@ transTyDec(S_table venv, S_table tenv, A_dec ty_dec) {
     }
 
     /* second time set right type to `Ty_name` type */
-    for (iter = ty_dec->u.type; iter; iter = ty_dec->u.type->tail) {
+    for (iter = ty_dec->u.type; iter; iter = iter->tail) {
         t1 = S_look(tenv, iter->head->name);
         if (t1 && t1->kind == Ty_name && t1->u.name.ty == NULL) {
             t2 = transTy(tenv, iter->head->ty);
