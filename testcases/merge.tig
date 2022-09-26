@@ -64,7 +64,9 @@ let
         end
 
     function printlist(l: list) =
-      if l=nil then 
+      if 
+          l = nil 
+      then 
           print("\n")
       else 
           (

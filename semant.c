@@ -150,7 +150,8 @@ checkRecordExp(S_table venv, S_table tenv, A_efieldList kv, Ty_fieldList kt, int
 
     /* TODO: test_record_exp.tig */
     if (kv->head->name != kt->head->name) {
-        EM_error(pos, "Record key name %s inconsistent with declare %s", S_name(kv->head->name), S_name(kt->head->name));
+        EM_error(pos, "Record key name %s inconsistent with declare %s", 
+            S_name(kv->head->name), S_name(kt->head->name));
     }
 
     struct expty val_expty = transExp(venv, tenv, kv->head->exp);
@@ -162,13 +163,14 @@ checkRecordExp(S_table venv, S_table tenv, A_efieldList kv, Ty_fieldList kt, int
 
 static struct expty
 transRecodeExp(S_table venv, S_table tenv, A_exp record_exp) {
-    Ty_ty record_ty = S_look(tenv, record_exp->u.record.typ);
+    Ty_ty deced_ty = S_look(tenv, record_exp->u.record.typ);
+    Ty_ty record_ty = actual_ty(deced_ty);
 
-    if (record_ty == NULL) {
+    if (deced_ty == NULL) {
         EM_error(record_exp->pos, "Record type %s use before declare", S_name(record_exp->u.record.typ));
         return expTy(NULL, Ty_Nil());
     }
-    if (actual_ty(record_ty)->kind != Ty_record) {
+    if (record_ty->kind != Ty_record) {
         EM_error(record_exp->pos, "Expect record type before `{...}`");
         return expTy(NULL, Ty_Nil());
     }
@@ -183,12 +185,14 @@ transRecodeExp(S_table venv, S_table tenv, A_exp record_exp) {
  */
 static struct expty
 transArrayExp(S_table venv, S_table tenv, A_exp array_exp) {
-    Ty_ty array_ty = S_look(tenv, array_exp->u.array.typ);
-    if (array_ty == NULL) {
+    Ty_ty deced_ty = S_look(tenv, array_exp->u.array.typ);
+    Ty_ty array_ty = actual_ty(deced_ty);
+
+    if (deced_ty == NULL) {
         EM_error(array_exp->pos, "Array type %s use before declare", S_name(array_exp->u.array.typ));
         return expTy(NULL, Ty_Array(Ty_Int()));
     }
-    if (actual_ty(array_ty)->kind != Ty_array) {
+    if (array_ty->kind != Ty_array) {
         EM_error(array_exp->pos, "Expect array type before `[exp] of exp`");
         return expTy(NULL, Ty_Array(Ty_Int()));
     }
@@ -201,7 +205,7 @@ transArrayExp(S_table venv, S_table tenv, A_exp array_exp) {
 
     struct expty init_expty = transExp(venv, tenv, array_exp->u.array.init);
     /* NOTE: array items type compare `array_ty->u.array` instead of `array_ty` */
-    if (!type_equal(init_expty.ty, actual_ty(array_ty)->u.array)) {
+    if (!type_equal(init_expty.ty, array_ty->u.array)) {
         EM_error(array_exp->pos, "Array init clause type dismatch");
         return expTy(NULL, Ty_Array(Ty_Int()));
     }
@@ -369,15 +373,15 @@ transSubscriptVar(S_table venv, S_table tenv, A_var subscript_var) {
 
 static void
 transVarDec(S_table venv, S_table tenv, A_dec var_dec) {
-    Ty_ty var_ty;
+    Ty_ty deced_ty;
     struct expty init_expty = transExp(venv, tenv, var_dec->u.var.init);
 
     if (var_dec->u.var.typ) {
-        var_ty = S_look(tenv, var_dec->u.var.typ);
-        if (var_ty == NULL) {
+        deced_ty = S_look(tenv, var_dec->u.var.typ);
+        if (deced_ty == NULL) {
             EM_error(var_dec->pos, "Type %s use before declare", S_name(var_dec->u.var.typ));
         }
-        if (!type_equal(var_ty, init_expty.ty)) {
+        if (!type_equal(deced_ty, init_expty.ty)) {
             EM_error(var_dec->pos, "Variable init type dismatch");
         }
     } 
@@ -431,6 +435,8 @@ transFuncDec(S_table venv, S_table tenv, A_dec func_dec) {
             if (result_ty == NULL) {
                 EM_error(f->pos, "Function return type %s use before declare", S_name(f->result));
             }
+        } else {
+            result_ty = Ty_Void();
         }
         S_enter(venv, f->name, E_FunEntry(formal_tys, result_ty));
     }
@@ -448,7 +454,7 @@ transFuncDec(S_table venv, S_table tenv, A_dec func_dec) {
             }
         }
         body_expty = transExp(venv, tenv, f->body);
-        if (f->result && body_expty.ty->kind != result_ty->kind) {
+        if (!type_equal(body_expty.ty, func_entry->u.fun.results)) {
             EM_error(func_dec->pos, "Function declared return type dimatch with body");
         }
         S_endScope(venv);
