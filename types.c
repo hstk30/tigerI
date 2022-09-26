@@ -76,8 +76,8 @@ Ty_fieldList Ty_FieldList(Ty_field head, Ty_fieldList tail) {
 
 /* printing functions - used for debugging */
 static char str_ty[][12] = {
-    "ty_record", "ty_nil", "ty_int", "ty_string", 
-    "ty_array", "ty_name", "ty_void"
+    "ty_int", "ty_string", "ty_nil", "ty_void",
+    "ty_record", "ty_array", "ty_name", 
 };
 
 /* This will infinite loop on mutually recursive types */

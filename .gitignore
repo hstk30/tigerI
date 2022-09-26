@@ -16,4 +16,5 @@ lex.yy.c
 
 lextest
 prabsyn
+type_check
 

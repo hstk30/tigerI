@@ -225,9 +225,11 @@ type     {adjust(); return TYPE;}
     while ((c = input()) != EOF) {
         charPos ++;
         switch (c) {
-            case '\n': 
-                EM_newline(); break;
-            case '/': 
+            case '\n': { 
+                EM_newline(); 
+                break;
+            }
+            case '/': {
                 if ((c = input()) == '*') {
                     charPos ++;
                     comment_lev ++;
@@ -235,13 +237,15 @@ type     {adjust(); return TYPE;}
                     unput(c);
                 }
                 break;
-            case '*': 
+            }
+            case '*': {
                 while ((c = input()) == '*') charPos ++;
                 if (c  == '/')
                     comment_lev --;
                 else
                     unput(c);
                 break;
+            }
             default: break;
         }
         if (comment_lev == 0) {
@@ -254,5 +258,5 @@ type     {adjust(); return TYPE;}
         EM_error(charPos, "End-Of-File Unclosed comment!");
         yyterminate();
     }
-    }
+}
 

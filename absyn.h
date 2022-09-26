@@ -36,11 +36,6 @@ typedef enum {
     A_eqOp, A_neqOp, A_ltOp, A_leOp, A_gtOp, A_geOp
 } A_oper;
 
-/*
- * lvalue   -> id
- *          -> lvalue.id
- *          -> lvalue[exp]
- */
 struct A_var_ {
     enum {
         A_simpleVar, 
@@ -61,41 +56,6 @@ struct A_var_ {
     } u;
 };
 
-/*
- * exp  -> lvalue
- *      -> nil
- *      -> (expseq)
- *      -> int_literal
- *      -> string_literal
- *      -> - exp
- *      -> id(args)
- *
- *      -> exp arith_op exp
- *      -> exp cmp_op exp
- *      -> exp bool_op exp
- *
- *      -> type-id\{record_init\}
- *      -> type-id\[exp\] of exp
- *      -> lvalue := exp
- *
- *      -> if exp then exp else exp
- *      -> if exp then exp
- *      -> while exp do exp
- *      -> for id := exp to exp do exp
- *      -> break
- *      -> let decs in expseq end
- *
- * args     -> 𝜖
- *          -> args_no_empty
- * args_no_empty    -> exp
- *                  -> args_no_empty, exp
- *
- * expseq   -> 𝜖
- *          -> expseq_no_empty
- * expseq_no_empty  -> exp
- *                  -> expseq_no_empty; exp
- */
-
 struct A_exp_ {
     enum {
         A_varExp, A_nilExp, A_intExp, A_stringExp, A_callExp,
@@ -110,10 +70,10 @@ struct A_exp_ {
         string stringg; /* "123" */ 
         struct {S_symbol func; A_expList args;} call; /* func(args) */
         struct {A_oper oper; A_exp left; A_exp right;} op;    /* a + b */
-        struct {S_symbol typ; A_efieldList fields;} record;   /* tree = {key: int, value: int} */
+        struct {S_symbol typ; A_efieldList fields;} record;   /* list{a=1, b=2} */
         struct {S_symbol typ; A_exp size, init;} array;   /* type[size] of init */
         A_expList seq;    /* (exp; ...) */
-        struct {A_var var; A_exp exp;} assign;    /* var a := exp */
+        struct {A_var var; A_exp exp;} assign;    /* a := exp */
         /* if test then thenn else elsee */
         struct {A_exp test, then, elsee;} iff; /* elsee is optional */
         struct {A_exp test, body;} whilee;    /* while test do body */
@@ -123,29 +83,6 @@ struct A_exp_ {
     } u;
 };
 
-/* 
- * decs -> 𝜖
- *      -> decs dec
- * dec  -> tydec
- *      -> vardec
- *      -> fundec
- *
- * tydec    -> type type-id = ty
- * ty       -> type-id
- *          -> \{tyfields\}
- *          -> array of type-id
- * tyfields -> 𝜖
- *          -> tyfields_no_empty
- * tyfields_no_empty    -> id: type-id
- *                      -> tyfields_no_empty, id: type-id
- *
- * vardec   -> var id := exp
- *          -> var id: type-id := exp
- *
- * fundec   -> function id(tyfields) = exp
- *          -> function id(tyfields): type-id = exp
- */
-
 struct A_dec_ {
     enum {
         A_functionDec, 
@@ -154,10 +91,10 @@ struct A_dec_ {
     } kind;
     A_pos pos;
     union {
-        A_fundecList function;
+        A_fundecList function;  /* for mul-recursion function */
         /* escape may change after the initial declaration */
         struct {S_symbol var; S_symbol typ; A_exp init; bool escape;} var; 
-        A_nametyList type;
+        A_nametyList type;  /* for mul-recursion type */
     } u;
 };
 
@@ -170,8 +107,8 @@ struct A_ty_ {
     A_pos pos;
     union {
         S_symbol name;  /* type type_id = ty */
-        A_fieldList record; /* { tyfields } */
-        S_symbol array; /* array of type_id */
+        A_fieldList record; /* type type_id = { tyfields } */
+        S_symbol array; /* type type_id = array of type_id */
     } u;
 };
 

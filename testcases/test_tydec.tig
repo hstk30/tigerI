@@ -1,0 +1,27 @@
+/* test type dec */
+let 
+    type a = int
+    
+    var a := 1
+    type b = int 
+    type c = string
+
+    var b := 2
+
+    type intlist = {hd: int, tl: intlist}
+
+    var c := 3
+
+    type tree = {key: int, children: treelist}
+    type treelist = {hd: tree, tl: treelist}
+
+    var d := 4
+
+    /* type array recursion */
+    type intlist2 = {hd: int, tl: intlist2}
+    type arraylist = array of intlist2
+
+in
+    a
+end
+

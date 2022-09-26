@@ -1,0 +1,17 @@
+let 
+    type my_record = {a: int, b: string}
+    type int_array = array of int
+
+    var a: my_record := nil
+    var b: int_array := int_array[3] of 0
+    var c := b
+in
+    5 > 3;
+    5 >= 3;
+    4 <= 5;
+    4 < 5;
+    a <> nil;
+    a = nil;
+    b = c;
+    a = b   /* error */
+end
