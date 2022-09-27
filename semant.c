@@ -385,7 +385,12 @@ transVarDec(S_table venv, S_table tenv, A_dec var_dec) {
         if (!type_equal(deced_ty, init_expty.ty)) {
             EM_error(var_dec->pos, "Variable init type dismatch");
         }
-    } 
+    } else {
+        /* test45.tig */
+        if (init_expty.ty->kind == Ty_nil) {
+            EM_error(var_dec->pos, "Variable init `nil` can only used in declared record type");
+        }
+    }
 
     S_enter(venv, var_dec->u.var.var, E_VarEntry(init_expty.ty));
 
