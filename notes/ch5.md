@@ -15,5 +15,29 @@
 - 类似上一条，当类型在声明之前被使用的时候，这个类型经过`transTy` 的时候应该返回一个什么？
     需要考虑到被这个类型声明的变量在表达式中的类型检查。
 - 对于`S_table` `TAB_table` 的优化，这个项目我肯定不会去做。什么时候我写自己的编译器了，
-    就去把`Python` 的`Dict` 的抄过来，再抄个`AVT` 就可以了
+    就去把`Python` 的`Dict` 的抄过来，再抄个`AVL Tree` 就可以了
+
+
+## NULL Pointer 
+
+实现上遇到很多个`NULL Pointer` 问题，只有在运行时才出错，编译时可以通过。不过这也是常事了。
+
+`NULL` 的发明者**Tony Hoare** 也称`NULL` 是一个`billion-dollar mistake`
+
+> In 1965, I was designing the first comprehensive type system for references in an object oriented language (ALGOL W). My goal was to ensure that all use of references should be absolutely safe, with checking performed automatically by the compiler. But I couldn’t resist the temptation to put in a null reference, simply because it was so easy to implement. This has led to innumerable errors, vulnerabilities, and system crashes, which have probably caused a billion dollars of pain and damage in the last forty years.
+
+
+`Rust` 中通过引入`Option` 来处理空值确实能提前避免这种问题。
+但是引入的`unwrap` 依然会`panic` ，只不过这个责任在于程序员。
+当然，提示信息更明显，错误定位更容易了。
+不过，本质上和`c` 中的代码
+
+```
+if (p == NULL)
+```
+
+也没啥区别。
+
+不过，引入了`unwrap`，代码里基本尾巴上都会接一个`unwrap()`，
+有的代码就很长，感觉很不爽。
 
