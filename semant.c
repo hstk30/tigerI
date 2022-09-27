@@ -148,7 +148,6 @@ checkRecordExp(S_table venv, S_table tenv, A_efieldList kv, Ty_fieldList kt, int
         return ;
     }
 
-    /* TODO: test_record_exp.tig */
     if (kv->head->name != kt->head->name) {
         EM_error(pos, "Record key name %s inconsistent with declare %s", 
             S_name(kv->head->name), S_name(kt->head->name));
@@ -552,7 +551,6 @@ transArrayTy(S_table tenv, A_ty array_ty) {
     Ty_ty t = S_look(tenv, array_ty->u.array);
     if (t == NULL) {
         EM_error(array_ty->pos, "Type %s use before declare", S_name(array_ty->u.array));
-        /* TODO: return what when it happen? */
         return Ty_Array(Ty_Int());
     }
     return Ty_Array(t);
