@@ -15,6 +15,14 @@ E_enventry E_FunEntry(Ty_tyList formals, Ty_ty results) {
     return entry;
 }
 
+E_enventry E_EscEntry(int depth, bool *escape) {
+    E_enventry entry = checked_malloc(sizeof(*entry));
+    entry->kind = E_escEntry;
+    entry->u.escape.depth = depth;
+    entry->u.escape.escape = escape;
+    return entry;
+}
+
 S_table E_base_tenv() {
     S_table tenv = S_empty();
     S_enter(tenv, S_Symbol("int"), Ty_Int());
@@ -54,5 +62,10 @@ S_table E_base_venv() {
     S_enter(venv, S_Symbol("exit"), 
             E_FunEntry(Ty_TyList(Ty_Int(), NULL), Ty_Void()));
     return venv;
+}
+
+S_table E_base_eenv() {
+    S_table eenv = S_empty();
+    return eenv;
 }
 

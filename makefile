@@ -1,5 +1,5 @@
 CC=cc
-CFLAGS=-g -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
+CFLAGS=-Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
 
 LEX_OBJECTS = lex.yy.o errormsg.o util.o 
 ABSYN_OBJECTS = $(LEX_OBJECTS) y.tab.o parse.o absyn.o table.o symbol.o 
@@ -12,7 +12,7 @@ prabsyn: $(ABSYN_OBJECTS) prabsyn.o
 	$(CC) -o $@ prabsyn.o $(ABSYN_OBJECTS)
 
 type_check: $(TYPE_CHECK_OBJECTS) type_check.o 
-	$(CC) -o $@ $(TYPE_CHECK_OBJECTS) type_check.o
+	$(CC) -o $@ type_check.o $(TYPE_CHECK_OBJECTS) 
 
 y.tab.o: y.tab.c 
 errormsg.o: errormsg.h util.h
@@ -25,8 +25,8 @@ env.o: env.h util.h symbol.h types.h
 types.o: types.h util.h symbol.h
 semant.o: semant.h
 
-lextest.o: lextest.c absyn.h symbol.h y.tab.h errormsg.h util.h
-prabsyn.o: prabsyn.h util.h absyn.h
+lextest.o: lextest.c 
+prabsyn.o: prabsyn.h 
 type_check.o: type_check.c 
 
 y.tab.c: tiger.y
@@ -38,6 +38,10 @@ y.tab.h: y.tab.c
 lex.yy.o: y.tab.h errormsg.h util.h
 lex.yy.c: tiger.lex
 	lex tiger.lex
+
+.PHONY: all clean
+
+all: lextest prabsyn type_check
 
 clean: 
 	rm -f a.out *.o y.tab.c y.tab.h lex.yy.c y.output lextest prabsyn type_check
