@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h> /* for atoi */
 #include <string.h> /* for strcpy */
+
 #include "util.h"
 #include "symbol.h"
 #include "absyn.h"

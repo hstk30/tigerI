@@ -15,6 +15,7 @@ y.tab.h
 lex.yy.c
 
 lextest
-prabsyn
-type_check
+asttest
+typetest
+esctest
 

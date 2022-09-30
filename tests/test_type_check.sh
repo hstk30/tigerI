@@ -2,7 +2,7 @@
 testcases=../testcases/
 for entry in "$testcases"/*
 do
-    echo "./type_check $entry"
-    ./type_check $entry > /dev/null
+    echo "./typetest $entry"
+    ./typetest $entry > /dev/null
     echo ""
 done

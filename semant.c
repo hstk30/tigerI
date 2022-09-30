@@ -1,4 +1,5 @@
 #include <stdio.h>
+
 #include "semant.h"
 #include "types.h"
 #include "env.h"
@@ -213,6 +214,24 @@ transArrayExp(S_table venv, S_table tenv, A_exp array_exp) {
     return expTy(NULL, actual_ty(array_ty));
 }
 
+/*
+ * `()` `(a <> nul)` `(s1; s2; s3)` all be `seqexp`
+ */
+static struct expty
+transSeqExp(S_table venv, S_table tenv, A_exp seq_exp) {
+    A_expList el;
+    struct expty last_expty;
+    
+    if (seq_exp->u.seq == NULL) {
+        return expTy(NULL, Ty_Void());
+    } else {
+        for (el = seq_exp->u.seq; el; el = el->tail) {
+            last_expty = transExp(venv, tenv, el->head);
+        }
+        return expTy(NULL, actual_ty(last_expty.ty));
+    }
+}
+
 static struct expty
 transAssignExp(S_table venv, S_table tenv, A_exp assign_exp) {
     struct expty var_expty = transVar(venv, tenv, assign_exp->u.assign.var); 
@@ -300,12 +319,12 @@ transForExp(S_table venv, S_table tenv, A_exp for_exp) {
 static struct expty
 transLetExp(S_table venv, S_table tenv, A_exp let_exp) {
     struct expty body_expty;
-    A_decList d;
+    A_decList dl;
 
     S_beginScope(venv);
     S_beginScope(tenv);
-    for (d = let_exp->u.let.decs; d; d = d->tail) {
-        transDec(venv, tenv, d->head);
+    for (dl = let_exp->u.let.decs; dl; dl = dl->tail) {
+        transDec(venv, tenv, dl->head);
     }
     body_expty = transExp(venv, tenv, let_exp->u.let.body);
     S_endScope(tenv);
@@ -313,7 +332,6 @@ transLetExp(S_table venv, S_table tenv, A_exp let_exp) {
 
     return body_expty;
 }
-
 
 static struct expty
 transSimpleVar(S_table venv, S_table tenv, A_var simple_var) {
@@ -554,24 +572,6 @@ transArrayTy(S_table tenv, A_ty array_ty) {
         return Ty_Array(Ty_Int());
     }
     return Ty_Array(t);
-}
-
-/*
- * `()` `(a <> nul)` `(s1; s2; s3)` all be `seqexp`
- */
-static struct expty
-transSeqExp(S_table venv, S_table tenv, A_exp seq_exp) {
-    A_expList el;
-    struct expty last_expty;
-    
-    if (seq_exp->u.seq == NULL) {
-        return expTy(NULL, Ty_Void());
-    } else {
-        for (el = seq_exp->u.seq; el; el = el->tail) {
-            last_expty = transExp(venv, tenv, el->head);
-        }
-        return expTy(NULL, actual_ty(last_expty.ty));
-    }
 }
 
 struct expty transExp(S_table venv, S_table tenv, A_exp a) {

@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "env.h"
 
 E_enventry E_VarEntry(Ty_ty ty) {

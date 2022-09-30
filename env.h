@@ -1,7 +1,6 @@
 #ifndef ENV_H__
 #define ENV_H__
 
-#include <stdio.h>
 #include "util.h"
 #include "symbol.h"
 #include "types.h"

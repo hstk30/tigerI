@@ -2,7 +2,7 @@
 testcases=../testcases/
 for entry in "$testcases"/*
 do
-    echo "./prabsyn $entry"
-    ./prabsyn $entry
+    echo "./asttest $entry"
+    ./asttest $entry
     echo ""
 done
