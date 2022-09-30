@@ -12,8 +12,8 @@ lextest: $(LEX_OBJECTS) lextest.o
 asttest: $(ABSYN_OBJECTS) prabsyn.o asttest.o
 	$(CC) -o $@ prabsyn.o asttest.o $(ABSYN_OBJECTS)
 
-typetest: $(TYPE_CHECK_OBJECTS) type_check.o 
-	$(CC) -o $@ type_check.o $(TYPE_CHECK_OBJECTS) 
+typetest: $(TYPE_CHECK_OBJECTS) typetest.o 
+	$(CC) -o $@ typetest.o $(TYPE_CHECK_OBJECTS) 
 
 esctest: $(ESCAPE_TEST_OBJECTS) prabsyn.o esctest.o
 	$(CC) -o $@ prabsyn.o esctest.o $(ESCAPE_TEST_OBJECTS) 
@@ -33,7 +33,7 @@ escape.o: escape.h
 lextest.o: lextest.c 
 prabsyn.o: prabsyn.h 
 asttest.o: asttest.c
-type_check.o: type_check.c 
+typetest.o: typetest.c 
 esctest.o: esctest.c
 
 y.tab.c: tiger.y
