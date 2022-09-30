@@ -1,19 +1,19 @@
 let 
     var a:int := 1  /* a.escape = True */
 
-    function fun1() = 
+    function fun1(c: int, d: int) = /* c.escape = True d.escape = False */
         let
             var a: int := a + 1 /* a.escape = False */
             var b: int := 2  /* b.escape = True */
 
             function fun2(a: int) =  /* a.escape = False */
-                if b <> 2
+                if a <> 2
                 then 
-                    print("x")
+                    b
                 else
-                    print("y")
+                    c
         in
-            fun2(a)
+            fun2(d)
         end
 in
     fun1()

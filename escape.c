@@ -105,7 +105,8 @@ static void traverseDec(S_table eenv, int depth, A_dec d) {
 
                 for (params = fl->head->params; params; params = params->tail) {
                     params->head->escape = FALSE;
-                    S_enter(eenv, params->head->name, E_EscEntry(depth, &(params->head->escape)));
+                    S_enter(eenv, params->head->name, 
+                            E_EscEntry(depth + 1, &(params->head->escape)));
                 }
                 traverseExp(eenv, depth + 1, fl->head->body);
 
