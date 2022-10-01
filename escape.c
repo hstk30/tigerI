@@ -10,6 +10,16 @@ static void traverseDec(S_table env, int depth, A_dec d);
 static void traverseVar(S_table env, int depth, A_var v);
 
 
+U_boolList makeBoolList(A_fieldList params) {
+    if (params == NULL) {
+        return NULL;
+    }
+
+    return U_BoolList(
+            params->head->escape, 
+            makeBoolList(params->tail));
+}
+
 static void traverseExp(S_table eenv, int depth, A_exp e) {
     switch (e->kind) {
         case A_varExp: return traverseVar(eenv, depth, e->u.var);

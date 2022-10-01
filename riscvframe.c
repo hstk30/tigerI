@@ -4,7 +4,7 @@
 
 struct F_frame_ {
     Temp_label name;
-    /* formals and local variable */;
+    /* formals and local variable */
     F_accessList formals, locals, locals_tail;   
     int offset;
 };
@@ -73,6 +73,7 @@ makeFormals(F_frame f, U_boolList formals) {
 
 F_frame F_newFrame(Temp_label name, U_boolList formals) {
     F_frame p = checked_malloc(sizeof(*p));
+
     p->name = name;
     p->locals = NULL;
     p->locals_tail = NULL;
@@ -106,7 +107,7 @@ F_access F_allocLocal(F_frame f, bool escape) {
 }
 
 /* debug info */
-void FP_frame(F_frame f) {
+void F_print(F_frame f) {
     F_accessList iter;
     printf("Frame name: %s\n", S_name(f->name));
 
