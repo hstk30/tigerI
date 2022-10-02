@@ -3,7 +3,7 @@ CFLAGS=-g -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
 
 LEX_OBJECTS = lex.yy.o errormsg.o util.o 
 ABSYN_OBJECTS = $(LEX_OBJECTS) y.tab.o parse.o absyn.o table.o symbol.o 
-TYPE_CHECK_OBJECTS = $(ABSYN_OBJECTS) env.o types.o escape.o \
+SEMANT_OBJECTS = $(ABSYN_OBJECTS) env.o types.o escape.o \
 					 temp.o translate.o riscvframe.o semant.o 
 
 lextest: $(LEX_OBJECTS) lextest.o 
@@ -12,8 +12,8 @@ lextest: $(LEX_OBJECTS) lextest.o
 asttest: $(ABSYN_OBJECTS) prabsyn.o asttest.o
 	$(CC) -o $@ prabsyn.o asttest.o $(ABSYN_OBJECTS)
 
-typetest: $(TYPE_CHECK_OBJECTS) typetest.o 
-	$(CC) -o $@ typetest.o $(TYPE_CHECK_OBJECTS) 
+semanttest: $(SEMANT_OBJECTS) semanttest.o 
+	$(CC) -o $@ semanttest.o $(SEMANT_OBJECTS) 
 
 y.tab.o: y.tab.c 
 errormsg.o: errormsg.h util.h
@@ -34,7 +34,7 @@ riscvframe.o: frame.h riscvframe.c
 lextest.o: lextest.c 
 prabsyn.o: prabsyn.h 
 asttest.o: asttest.c
-typetest.o: typetest.c 
+semanttest.o: semanttest.c 
 
 y.tab.c: tiger.y
 	yacc -dv tiger.y
@@ -48,9 +48,9 @@ lex.yy.c: tiger.lex
 
 .PHONY: all clean
 
-all: lextest asttest typetest 
+all: lextest asttest semanttest 
 
 clean: 
 	rm -f a.out *.o y.tab.c y.tab.h lex.yy.c y.output \
-		lextest asttest typetest 
+		lextest asttest semanttest 
 

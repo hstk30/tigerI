@@ -11,8 +11,9 @@ int main(int argc, char **argv) {
         return(1);
     }
     A_exp absyn_tree_root = parse(argv[1]);
-    if (absyn_tree_root)
+    if (absyn_tree_root) {
         pr_exp(stdout, absyn_tree_root, 0);
+    }
     else {
         fprintf(stderr, "parsing failed!\n");
         return 1;

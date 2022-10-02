@@ -340,7 +340,6 @@ transLetExp(Tr_level level, S_table venv, S_table tenv, A_exp let_exp) {
     body_expty = transExp(level, venv, tenv, let_exp->u.let.body);
     S_endScope(tenv);
     S_endScope(venv);
-
     return body_expty;
 }
 
@@ -468,15 +467,15 @@ transFuncDec(Tr_level level, S_table venv, S_table tenv, A_dec func_dec) {
     Ty_ty result_ty = NULL;
     E_enventry func_entry = NULL;
     Tr_level new_level;
-    Tr_access access;
-    U_boolList bool_escapes;
+    Tr_accessList al;
+    U_boolList escape_params;
     struct expty body_expty;
 
     /* first time collect function head info */
     for (fl = func_dec->u.function; fl; fl = fl->tail) {
         f = fl->head;
-        bool_escapes = makeBoolList(f->params);
-        new_level = Tr_newLevel(level, Temp_newlabel(), bool_escapes);
+        escape_params = makeBoolList(f->params);
+        new_level = Tr_newLevel(level, Temp_newlabel(), escape_params);
         formal_tys = makeFormalTyList(tenv, f->params);
         if (f->result) {
             result_ty = S_look(tenv, f->result);
@@ -494,20 +493,24 @@ transFuncDec(Tr_level level, S_table venv, S_table tenv, A_dec func_dec) {
     /* second time handle function body */
     for (fl = func_dec->u.function; fl; fl = fl->tail) {
         f = fl->head;
+        params = f->params;
         func_entry = S_look(venv, f->name);
         new_level = func_entry->u.fun.level;
-        S_beginScope(venv);
-        params = f->params;
         formal_tys = func_entry->u.fun.formals;
-        for (; params && formal_tys; params = params->tail, formal_tys = formal_tys->tail) {
-            access = Tr_allocLocal(new_level, params->head->escape);
+        al = Tr_formals(func_entry->u.fun.level);
+
+        S_beginScope(venv);
+
+        for (; params && formal_tys && al; 
+                params = params->tail, formal_tys = formal_tys->tail, al = al->tail) {
             S_enter(venv, params->head->name, 
-                    E_VarEntry(access, formal_tys->head));
+                    E_VarEntry(al->head, formal_tys->head));
         }
         body_expty = transExp(new_level, venv, tenv, f->body);
         if (!type_equal(body_expty.ty, func_entry->u.fun.results)) {
             EM_error(func_dec->pos, "Function declared return type dimatch with body");
         }
+
         S_endScope(venv);
         /* Tr_print(new_level); */
     }
@@ -656,10 +659,13 @@ Ty_ty transTy(S_table tenv, A_ty t) {
 }
 
 void SEM_transProg(A_exp exp) {
-    Esc_findEscape(exp);
     S_table venv = E_base_venv(), tenv = E_base_tenv();
     Tr_level outermost = Tr_outermost();
-    transExp(outermost, venv, tenv, exp);
+    Tr_level tiger_main = Tr_newLevel( outermost, Temp_namedlabel("tiger_main"), NULL);
+    transExp(tiger_main, venv, tenv, exp);
+
+    /* Tr_print(tiger_main); */
+    /* Tr_print(outermost); */
 
     return ;
 }

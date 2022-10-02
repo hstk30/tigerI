@@ -1,12 +1,12 @@
 let 
     var a:int := 1  /* a.escape = True */
 
-    function fun1(c: int, d: int) = /* c.escape = True d.escape = False */
+    function fun1(c: int, d: int): int = /* c.escape = True d.escape = False */
         let
             var a: int := a + 1 /* a.escape = False */
             var b: int := 2  /* b.escape = True */
 
-            function fun2(a: int) =  /* a.escape = False */
+            function fun2(a: int): int =  /* a.escape = False */
                 if a <> 2
                 then 
                     b
@@ -16,5 +16,5 @@ let
             fun2(d)
         end
 in
-    fun1()
+    fun1(a, 3)
 end

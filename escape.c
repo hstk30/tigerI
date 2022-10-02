@@ -132,7 +132,8 @@ static void traverseVar(S_table eenv, int depth, A_var v) {
     switch (v->kind) {
         case A_simpleVar: {
             E_enventry x = S_look(eenv, v->u.simple);
-            if (x->u.escape.depth < depth) {
+            /* `semant` will handle `x == NULL` error */
+            if (x && x->u.escape.depth < depth) {
                 *(x->u.escape.escape) = TRUE;
             }
             return ;

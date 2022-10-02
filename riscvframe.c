@@ -130,7 +130,7 @@ void F_print(F_frame f) {
             printf("\t\tInReg\n");
         }
     }
-    printf("Frame size: %d\n", f->offset);
+    printf("Frame size: %d\n\n", f->offset);
     
     return ;
 }

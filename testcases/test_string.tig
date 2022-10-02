@@ -13,11 +13,15 @@ let
     fweoi f
     fjwo ff
     "
-    /* error */
+    /* error: \num  */
     var err1 := "oct num must 0-255, \400"
+    /* error: \-  */
     var err2 := "oct num must 0-255, \-1"
+    /* error: \xnum  */
     var err3 := "hex num \\x must 0-f \xti"
+    /* error: \xnum  */
     var err4 := "hex num \\x must 0-f \x3q"
+    /* error: \num  */
     var err5 := "other escape \i"
 in 
     ()

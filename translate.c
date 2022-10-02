@@ -48,7 +48,7 @@ makeSformals(Tr_level level, F_accessList formals) {
 
 Tr_level Tr_outermost(void) {
     if (OUTERMOST_LEVEL == NULL) {
-        Tr_level level = Tr_newLevel(NULL, Temp_namedlabel("tiger_main"), NULL);
+        Tr_level level = Tr_newLevel(NULL, Temp_namedlabel("tiger_global"), NULL);
         /* let no `NULL` */
         level->parent = level;
         OUTERMOST_LEVEL = level;
