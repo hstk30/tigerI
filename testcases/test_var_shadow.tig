@@ -1,0 +1,10 @@
+/* shadow is ok */
+let
+    var i: int := 1
+    var i: int := i + 1
+
+    var i: string := "abc"
+in 
+    i
+end
+

@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "util.h"
 #include "errormsg.h"
 #include "parse.h"
 #include "absyn.h"
 #include "symbol.h"
+#include "escape.h"
 #include "semant.h"
 
 int main(int argc, char **argv) {
@@ -14,6 +16,7 @@ int main(int argc, char **argv) {
     }
     A_exp absyn_tree_root = parse(argv[1]);
     if (absyn_tree_root) {
+        Esc_findEscape(absyn_tree_root);
         SEM_transProg(absyn_tree_root);
     } else {
         fprintf(stderr, "parsing failed!\n");

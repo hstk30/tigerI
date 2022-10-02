@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <assert.h>
+
 #include "util.h"
 #include "symbol.h"
 #include "temp.h"
