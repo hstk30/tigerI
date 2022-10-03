@@ -20,6 +20,7 @@ Tr_accessList Tr_formals(Tr_level level);
 Tr_access Tr_allocLocal(Tr_level level, bool escape);
 
 typedef struct Tr_exp_ *Tr_exp;
+
 typedef struct Tr_expList_ *Tr_expList;
 struct Tr_expList_ {
     Tr_exp head;
