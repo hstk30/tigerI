@@ -59,7 +59,6 @@ transOpExp(Tr_level level, S_table venv, S_table tenv, A_exp opexp) {
     A_oper oper = opexp->u.op.oper;
     struct expty left_expty = transExp(level, venv, tenv, opexp->u.op.left);
     struct expty right_expty = transExp(level, venv, tenv, opexp->u.op.right);
-    struct expty ret_expty = expTy(NULL, Ty_Int());
 
     switch (oper) {
         case A_plusOp: 
@@ -73,7 +72,9 @@ transOpExp(Tr_level level, S_table venv, S_table tenv, A_exp opexp) {
             if (right_expty.ty->kind != Ty_int) 
                 EM_error(opexp->u.op.right->pos, 
                         "Opexp `+ - * /` clause integer required");
-            return ret_expty;
+            return expTy(
+                    Tr_arithExp(oper, left_expty.exp, right_expty.exp), 
+                    Ty_Int());
          }
         case A_ltOp:
         case A_leOp:
@@ -82,7 +83,9 @@ transOpExp(Tr_level level, S_table venv, S_table tenv, A_exp opexp) {
             if (left_expty.ty->kind != Ty_int || right_expty.ty->kind != Ty_int) {
                 EM_error(opexp->pos, "Opexp `< <= > >=`clause <type: int> required");
             }
-            return ret_expty;
+            return expTy(
+                    Tr_cmpExp(oper, left_expty.exp, right_expty.exp), 
+                    Ty_Int());
         }
         case A_eqOp:
         case A_neqOp: {
@@ -90,7 +93,9 @@ transOpExp(Tr_level level, S_table venv, S_table tenv, A_exp opexp) {
             if (!type_equal(left_expty.ty, right_expty.ty)) {
                 EM_error(opexp->pos, "Opexp `<> =` clause type dismatch");
             }
-            return ret_expty;
+            return expTy(
+                    Tr_cmpExp(oper, left_expty.exp, right_expty.exp), 
+                    Ty_Int());
         }
         default: assert(0);
     }
@@ -344,11 +349,13 @@ transLetExp(Tr_level level, S_table venv, S_table tenv, A_exp let_exp) {
 }
 
 static struct expty
-transSimpleVar(S_table venv, S_table tenv, A_var simple_var) {
+transSimpleVar(Tr_level level, S_table venv, S_table tenv, A_var simple_var) {
     E_enventry x = S_look(venv, simple_var->u.simple);
 
     if (x && x->kind == E_varEntry) {
-        return expTy(NULL, actual_ty(x->u.var.ty));
+        return expTy(
+                Tr_simpleVar(x->u.var.access, level), 
+                actual_ty(x->u.var.ty));
     } else {
         EM_error(simple_var->pos, "Variable %s use before declare", 
                 S_name(simple_var->u.simple));
@@ -370,9 +377,13 @@ transFieldVar(Tr_level level, S_table venv, S_table tenv, A_var field_var) {
     }
 
     Ty_fieldList iter;
+    int nth = 0;
     for (iter = record_expty.ty->u.record; iter; iter = iter->tail) {
+        nth ++;
         if (iter->head->name == field_var->u.field.sym) {
-            return expTy(NULL, actual_ty(iter->head->ty));
+            return expTy(
+                    Tr_fieldVar(record_expty.exp, nth), 
+                    actual_ty(iter->head->ty));
         }
     }
 
@@ -401,7 +412,10 @@ transSubscriptVar(Tr_level level, S_table venv, S_table tenv, A_var subscript_va
         EM_error(subscript_var->pos, "Array index <type: int> required");
         return expTy(NULL, Ty_Int());
     }
-    return expTy(NULL, actual_ty(array_expty.ty->u.array));
+    /* TODO: check out of index error */
+    return expTy(
+            Tr_subscriptVar(array_expty.exp, idx_expty.exp), 
+            actual_ty(array_expty.ty->u.array));
 }
 
 static void
@@ -633,7 +647,7 @@ struct expty transExp(Tr_level level, S_table venv, S_table tenv, A_exp a) {
 
 struct expty transVar(Tr_level level, S_table venv, S_table tenv, A_var v) {
     switch (v->kind) {
-        case A_simpleVar: return transSimpleVar(venv, tenv, v);
+        case A_simpleVar: return transSimpleVar(level, venv, tenv, v);
         case A_fieldVar: return transFieldVar(level, venv, tenv, v);
         case A_subscriptVar: return transSubscriptVar(level, venv, tenv, v);
         default: assert(0);

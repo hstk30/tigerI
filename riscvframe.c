@@ -2,6 +2,9 @@
 #include "temp.h"
 #include "util.h"
 
+
+const int F_wordSize = 8;
+
 struct F_frame_ {
     Temp_label name;
     /* formals and local variable */
@@ -105,6 +108,17 @@ F_access F_allocLocal(F_frame f, bool escape) {
 
     return access;
 }
+
+/*** translate interface ***/
+T_exp F_Exp(F_access access, T_exp frame_ptr) {
+    if (access->kind == inFrame) {
+        return T_Mem(T_Binop(T_plus, frame_ptr, T_Const(access->u.offset)));
+    } else {
+        return T_Mem(T_Temp(access->u.reg));
+    }
+}
+
+/*** end ***/
 
 /* debug info */
 void F_print(F_frame f) {

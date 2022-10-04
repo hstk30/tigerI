@@ -3,6 +3,8 @@
  *           abstract syntax rule.
  */
 
+#include <stdio.h>
+
 #include "util.h"
 #include "symbol.h" /* symbol table data structures */
 #include "absyn.h"  /* abstract syntax data structures */
@@ -294,5 +296,15 @@ A_efieldList A_EfieldList(A_efield head, A_efieldList tail) {
     p->head = head;
     p->tail = tail;
     return p;
+}
+
+U_boolList makeBoolList(A_fieldList params) {
+    if (params == NULL) {
+        return NULL;
+    }
+
+    return U_BoolList(
+            params->head->escape, 
+            makeBoolList(params->tail));
 }
 

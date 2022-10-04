@@ -3,6 +3,7 @@
 
 #include "temp.h"
 #include "tree.h"
+#include "absyn.h"
 
 typedef struct Tr_level_ *Tr_level;
 typedef struct Tr_access_ *Tr_access;
@@ -28,6 +29,12 @@ struct Tr_expList_ {
 };
 Tr_expList Tr_ExpList(Tr_exp head, Tr_expList tail);
 
+Tr_exp Tr_simpleVar(Tr_access access, Tr_level level);
+Tr_exp Tr_subscriptVar(Tr_exp base, Tr_exp idx);
+Tr_exp Tr_fieldVar(Tr_exp base, int nth);
+Tr_exp Tr_arithExp(A_oper op, Tr_exp left, Tr_exp right);
+Tr_exp Tr_cmpExp(A_oper op, Tr_exp left, Tr_exp right);
+Tr_exp Tr_ifExp(Tr_exp if_exp, Tr_exp then_exp, Tr_exp else_exp);
 
 void Tr_print(Tr_level level);
 
