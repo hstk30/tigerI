@@ -1,0 +1,21 @@
+let 
+    var a := 5
+    function fun() = 
+        for b := 0 to 10 
+        do 
+        (
+            if b = 5 then break;
+            a = a + b
+        )
+
+in
+    for a := 0 to 10 
+    do 
+        let 
+            function ridi() = break
+        in
+            ridi()
+        end
+        
+    break   /* error: break out of loop */
+end
