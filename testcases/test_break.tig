@@ -5,17 +5,21 @@ let
         do 
         (
             if b = 5 then break;
-            a = a + b
+            a = a + b;
+            ()  /* for shoudle return void */
         )
 
 in
+    (
     for a := 0 to 10 
     do 
         let 
-            function ridi() = break
+            function ridi() = break /* error */
         in
             ridi()
         end
-        
-    break   /* error: break out of loop */
+    ;
+    /* error: break out of loop */
+    break
+    )
 end

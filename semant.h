@@ -8,8 +8,6 @@
 #include "absyn.h"
 
 
-#define MAXLOOPNUM 100
-
 void SEM_transProg(A_exp exp);
 
 #endif

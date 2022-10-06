@@ -43,8 +43,8 @@ static void pr_stm(FILE *out, T_stm stm, int d)
     indent(out,d); fprintf(out, "CJUMP(%s,\n", rel_oper[stm->u.CJUMP.op]);
     pr_tree_exp(out, stm->u.CJUMP.left,d+1); fprintf(out, ",\n"); 
     pr_tree_exp(out, stm->u.CJUMP.right,d+1); fprintf(out, ",\n");
-    indent(out,d+1); fprintf(out, "%s,", S_name(stm->u.CJUMP.true));
-    fprintf(out, "%s", S_name(stm->u.CJUMP.false)); fprintf(out, ")");
+    indent(out,d+1); fprintf(out, "%s,", S_name(stm->u.CJUMP.l_true));
+    fprintf(out, "%s", S_name(stm->u.CJUMP.l_false)); fprintf(out, ")");
     break;
   case T_MOVE:
     indent(out,d); fprintf(out, "MOVE(\n"); pr_tree_exp(out, stm->u.MOVE.dst,d+1); 

@@ -29,12 +29,22 @@ struct Tr_expList_ {
 };
 Tr_expList Tr_ExpList(Tr_exp head, Tr_expList tail);
 
+Tr_exp Tr_nop();
 Tr_exp Tr_simpleVar(Tr_access access, Tr_level level);
 Tr_exp Tr_subscriptVar(Tr_exp base, Tr_exp idx);
 Tr_exp Tr_fieldVar(Tr_exp base, int nth);
 Tr_exp Tr_arithExp(A_oper op, Tr_exp left, Tr_exp right);
 Tr_exp Tr_cmpExp(A_oper op, Tr_exp left, Tr_exp right);
 Tr_exp Tr_ifExp(Tr_exp if_exp, Tr_exp then_exp, Tr_exp else_exp);
+Tr_exp Tr_nilExp();
+Tr_exp Tr_intExp(int n);
+Tr_exp Tr_stringExp(string str);
+Tr_exp Tr_recordExp(Tr_expList el);
+Tr_exp Tr_arrayExp(Tr_exp size, Tr_exp init);
+Tr_exp Tr_whileExp(Tr_exp test_exp, Tr_exp body_exp, Temp_label done);
+Tr_exp Tr_forExp(Tr_exp lo_exp, Tr_exp hi_exp, Tr_exp body_exp, Temp_label done);
+Tr_exp Tr_breakExp(Temp_label done);
+Tr_exp Tr_callExp(Temp_label func_name, Tr_level level, Tr_accessList args);
 
 void Tr_print(Tr_level level);
 

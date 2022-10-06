@@ -28,7 +28,10 @@ Temp_label F_name(F_frame f);
 F_accessList F_formals(F_frame f);
 F_access F_allocLocal(F_frame f, bool escape);
 
+string F_getlabel(F_frame frame);   /* ?? */
+
 /*** translate interface ***/
+T_exp F_externalCall(string s, T_expList args);
 T_exp F_Exp(F_access access, T_exp frame_ptr);
 
 /*** end ***/
@@ -46,6 +49,9 @@ struct F_frag_ {
 F_frag F_StringFrag(Temp_label label, string str);
 F_frag F_ProcFrag(T_stm body, F_frame frame);
 
+F_frag F_string(Temp_label lab, string str);    /* ?? */
+F_frag F_newProcFrag(T_stm body, F_frame frame);    /* ?? */
+
 typedef struct F_fragList_ *F_fragList;
 struct F_fragList_ {
     F_frag head;
@@ -55,18 +61,12 @@ F_fragList F_FragList(F_frag head, F_fragList tail);
 
 Temp_map F_tempMap();
 Temp_tempList F_registers(void);
-string F_getlabel(F_frame frame);
-T_exp F_Exp(F_access acc, T_exp framePtr);
 
 Temp_temp F_FP();
 Temp_temp F_SP();
 Temp_temp F_ZERO();
 Temp_temp F_RA();
 Temp_temp F_RV();
-
-T_exp F_externalCall(string s, T_expList args);
-F_frag F_string(Temp_label lab, string str);
-F_frag F_newProcFrag(T_stm body, F_frame frame);
 
 T_stm        F_procEntryExit1(F_frame frame, T_stm stm);
 AS_instrList F_procEntryExit2(AS_instrList body);
