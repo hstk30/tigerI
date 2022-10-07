@@ -34,7 +34,7 @@ struct expty expTy(Tr_exp exp, Ty_ty ty) {
  */ 
 struct expty transVar(Tr_level level, S_table venv, S_table tenv, A_var v);
 struct expty transExp(Tr_level level, S_table venv, S_table tenv, A_exp a);
-void transDec(Tr_level level, S_table venv, S_table tenv, A_dec d);
+Tr_exp transDec(Tr_level level, S_table venv, S_table tenv, A_dec d);
 Ty_ty transTy(S_table tenv, A_ty a);
 
 /*
@@ -150,11 +150,11 @@ transCallExp(Tr_level level, S_table venv, S_table tenv, A_exp call_exp) {
 
     if (func->u.fun.results == NULL) {
         return expTy(
-                Tr_callExp(), 
+                Tr_callExp(func->u.fun.label, args), 
                 Ty_Void());
     } else {
         return expTy(
-                Tr_callExp(), 
+                Tr_callExp(func->u.fun.label, args), 
                 actual_ty(func->u.fun.results));
     }
 }
@@ -262,7 +262,7 @@ transSeqExp(Tr_level level, S_table venv, S_table tenv, A_exp seq_exp) {
     struct expty last_expty;
     
     if (seq_exp->u.seq == NULL) {
-        return expTy(NULL, Ty_Void());
+        return expTy(Tr_nop(), Ty_Void());
     } else {
         for (el = seq_exp->u.seq; el; el = el->tail) {
             last_expty = transExp(level, venv, tenv, el->head);
@@ -283,9 +283,12 @@ transAssignExp(Tr_level level, S_table venv, S_table tenv, A_exp assign_exp) {
      */
     if (!type_equal(var_expty.ty, val_expty.ty)) {
         EM_error(assign_exp->pos, "Assign clause type dismatch");
+        exit(1);
     }
 
-    return expTy(NULL, Ty_Void());
+    return expTy(
+            Tr_assignExp(var_expty.exp, val_expty.exp), 
+            Ty_Void());
 }
 
 static struct expty
@@ -427,8 +430,7 @@ transSimpleVar(Tr_level level, S_table venv, S_table tenv, A_var simple_var) {
     } else {
         EM_error(simple_var->pos, "Variable %s use before declare", 
                 S_name(simple_var->u.simple));
-        /* default int ? */
-        return expTy(NULL, Ty_Int());
+        exit(1);
     }
 }
 
@@ -486,7 +488,7 @@ transSubscriptVar(Tr_level level, S_table venv, S_table tenv, A_var subscript_va
             actual_ty(array_expty.ty->u.array));
 }
 
-static void
+static Tr_exp
 transVarDec(Tr_level level, S_table venv, S_table tenv, A_dec var_dec) {
     Ty_ty deced_ty;
     struct expty init_expty = transExp(level, venv, tenv, var_dec->u.var.init);
@@ -496,22 +498,27 @@ transVarDec(Tr_level level, S_table venv, S_table tenv, A_dec var_dec) {
         if (deced_ty == NULL) {
             EM_error(var_dec->pos, "Type %s use before declare", 
                     S_name(var_dec->u.var.typ));
+            exit(1);
         }
         if (!type_equal(deced_ty, init_expty.ty)) {
             EM_error(var_dec->pos, "Variable init type dismatch");
+            exit(1);
         }
     } else {
         /* test45.tig */
         if (init_expty.ty->kind == Ty_nil) {
             EM_error(var_dec->pos, 
                     "Variable init `nil` can only used in declared record type");
+            exit(1);
         }
     }
 
     Tr_access access = Tr_allocLocal(level, var_dec->u.var.escape);
     S_enter(venv, var_dec->u.var.var, E_VarEntry(access, init_expty.ty));
 
-    return ;
+    return Tr_assignExp(
+            Tr_simpleVar(access, level), 
+            init_expty.exp);
 }
 
 /*
@@ -540,7 +547,7 @@ makeFormalTyList(S_table tenv, A_fieldList params) {
  * enter param to function scope
  * transExp(body)
  */
-static void
+static Tr_exp
 transFuncDec(Tr_level level, S_table venv, S_table tenv, A_dec func_dec) {
     A_fundec f;
     A_fundecList fl;
@@ -601,14 +608,14 @@ transFuncDec(Tr_level level, S_table venv, S_table tenv, A_dec func_dec) {
         /* Tr_print(new_level); */
     }
 
-    return ;
+    return Tr_nop();
 }
 
 /* 
  * test5.tig
  * iter `A_dec.u.type` twice to handle recursion
  */
-static void
+static Tr_exp
 transTyDec(S_table venv, S_table tenv, A_dec ty_dec) {
     A_nametyList iter;
     Ty_ty t1, t2;
@@ -632,6 +639,8 @@ transTyDec(S_table venv, S_table tenv, A_dec ty_dec) {
             t1->u.name.ty = t2;
         }
     }
+
+    return Tr_nop();
 }
 
 static Ty_ty
@@ -728,7 +737,7 @@ struct expty transVar(Tr_level level, S_table venv, S_table tenv, A_var v) {
     }
 }
 
-void transDec(Tr_level level, S_table venv, S_table tenv, A_dec d) {
+Tr_exp transDec(Tr_level level, S_table venv, S_table tenv, A_dec d) {
     switch (d->kind) {
         case A_varDec: return transVarDec(level, venv, tenv, d);
         case A_functionDec: return transFuncDec(level, venv, tenv, d);

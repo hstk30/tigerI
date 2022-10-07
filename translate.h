@@ -44,7 +44,9 @@ Tr_exp Tr_arrayExp(Tr_exp size, Tr_exp init);
 Tr_exp Tr_whileExp(Tr_exp test_exp, Tr_exp body_exp, Temp_label done);
 Tr_exp Tr_forExp(Tr_exp lo_exp, Tr_exp hi_exp, Tr_exp body_exp, Temp_label done);
 Tr_exp Tr_breakExp(Temp_label done);
-Tr_exp Tr_callExp(Temp_label func_name, Tr_level level, Tr_accessList args);
+Tr_exp Tr_callExp(Temp_label func_name, Tr_expList args);
+Tr_exp Tr_assignExp(Tr_exp var_exp, Tr_exp val_exp);
+Tr_exp Tr_seqExp();
 
 void Tr_print(Tr_level level);
 

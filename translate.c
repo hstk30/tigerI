@@ -68,7 +68,6 @@ Tr_level Tr_outermost(void) {
 Tr_level 
 Tr_newLevel(Tr_level parent, Temp_label name, U_boolList formals) {
     Tr_level level = checked_malloc(sizeof(*level));
-
     U_boolList static_link_formals = U_BoolList(TRUE, formals);
     level->parent = parent;
     level->frame = F_newFrame(name, static_link_formals);
@@ -522,7 +521,27 @@ Tr_exp Tr_breakExp(Temp_label done) {
     return Tr_Nx(T_Jump(T_Name(done), Temp_LabelList(done, NULL)));
 }
 
-Tr_exp Tr_callExp() {
+/* TODO: not sure */
+Tr_exp Tr_callExp(Temp_label func_name, Tr_expList args) {
+    T_expList t_args = NULL;
+    Tr_expList iter;
 
+    for (iter = args; iter; iter = iter->tail) {
+        t_args = T_ExpList(unEx(iter->head), t_args);
+    }
+
+    /* `t_args` is reverse */
+    return Tr_Ex(
+            T_Call(
+                T_Name(func_name), 
+                T_ExpList(T_Temp(F_FP()), t_args)));
+}
+
+
+Tr_exp Tr_assignExp(Tr_exp var_exp, Tr_exp val_exp) {
+    return Tr_Nx(
+            T_Move(
+                unEx(var_exp), 
+                unEx(val_exp)));
 }
 
