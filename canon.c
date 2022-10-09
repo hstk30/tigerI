@@ -101,11 +101,10 @@ static struct stmExp do_exp(T_exp exp)
             return StmExp(
                     reorder(ExpRefList(&exp->u.MEM, NULL)), 
                     exp);
-        case T_ESEQ:
+        case T_ESEQ: {
             struct stmExp x = do_exp(exp->u.ESEQ.exp);
-            return StmExp(
-                    seq(do_stm(exp->u.ESEQ.stm), x.s), 
-                    x.e);
+            return StmExp(seq(do_stm(exp->u.ESEQ.stm), x.s), x.e);
+        }
         case T_CALL:    
             return StmExp(reorder(get_call_rlist(exp)), exp);
         default:
@@ -260,8 +259,8 @@ static void trace(T_stmList list) {
     }
     /* we want false label to follow CJUMP */
     else if (s->kind == T_CJUMP) {
-        T_stmList true =  (T_stmList)S_look(block_env, s->u.CJUMP.true);
-        T_stmList false =  (T_stmList)S_look(block_env, s->u.CJUMP.false);
+        T_stmList true =  (T_stmList)S_look(block_env, s->u.CJUMP.l_true);
+        T_stmList false =  (T_stmList)S_look(block_env, s->u.CJUMP.l_false);
         if (false) {
             last->tail->tail = false;
             trace(false);
@@ -270,8 +269,8 @@ static void trace(T_stmList list) {
             last->tail->head = T_Cjump(T_notRel(s->u.CJUMP.op), 
                                        s->u.CJUMP.left,
                                        s->u.CJUMP.right, 
-                                       s->u.CJUMP.false, 
-                                       s->u.CJUMP.true);
+                                       s->u.CJUMP.l_false, 
+                                       s->u.CJUMP.l_true);
             last->tail->tail = true;
             trace(true);
         }
@@ -280,7 +279,7 @@ static void trace(T_stmList list) {
             last->tail->head = T_Cjump(s->u.CJUMP.op, 
                                        s->u.CJUMP.left,
                                        s->u.CJUMP.right, 
-                                       s->u.CJUMP.true, 
+                                       s->u.CJUMP.l_true, 
                                        false);
             last->tail->tail = T_StmList(T_Label(false), getNext());
         }

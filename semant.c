@@ -166,7 +166,7 @@ transCallExp(Tr_level level, S_table venv, S_table tenv, A_exp call_exp) {
  */
 static Tr_expList 
 makeRecordVals(Tr_level level, S_table venv, S_table tenv, 
-        A_efieldList kv, Ty_fieldList kt, int pos) {
+        A_efieldList kv, Ty_fieldList kt, int pos, int *nvals) {
     if ((kv == NULL && kt != NULL) ||
             (kv != NULL && kt == NULL)) {
         EM_error(pos, "Record create length inconsistent with declare");
@@ -183,6 +183,7 @@ makeRecordVals(Tr_level level, S_table venv, S_table tenv,
     }
 
     struct expty val_expty = transExp(level, venv, tenv, kv->head->exp);
+    *nvals += 1;
     if (!type_equal(val_expty.ty, kt->head->ty)) {
         EM_error(kv->head->exp->pos, 
                 "Record value type inconsistent with declare");
@@ -190,12 +191,13 @@ makeRecordVals(Tr_level level, S_table venv, S_table tenv,
     }
     return Tr_ExpList(
             val_expty.exp,
-            makeRecordVals(level, venv, tenv, kv->tail, kt->tail, pos));
+            makeRecordVals(level, venv, tenv, kv->tail, kt->tail, pos, nvals));
 }
 
 static struct expty
 transRecodeExp(Tr_level level, S_table venv, S_table tenv, A_exp record_exp) {
     Ty_ty deced_ty = S_look(tenv, record_exp->u.record.typ), record_ty;
+    int nvals = 0;
 
     if (deced_ty == NULL) {
         EM_error(record_exp->pos, "Record type %s use before declare", 
@@ -208,10 +210,10 @@ transRecodeExp(Tr_level level, S_table venv, S_table tenv, A_exp record_exp) {
         return expTy(NULL, Ty_Nil());
     }
     Tr_expList val_exps = makeRecordVals(level, venv, tenv, 
-            record_exp->u.record.fields, record_ty->u.record, record_exp->pos);
+            record_exp->u.record.fields, record_ty->u.record, record_exp->pos, &nvals);
 
     return expTy(
-            Tr_recordExp(val_exps), 
+            Tr_recordExp(val_exps, nvals), 
             actual_ty(record_ty));
 }
 
@@ -260,14 +262,23 @@ static struct expty
 transSeqExp(Tr_level level, S_table venv, S_table tenv, A_exp seq_exp) {
     A_expList el;
     struct expty last_expty;
-    
+    Tr_expList head = Tr_ExpList(NULL, NULL);
+    Tr_expList tail = head;
+    Tr_expList p;
+
     if (seq_exp->u.seq == NULL) {
         return expTy(Tr_nop(), Ty_Void());
     } else {
         for (el = seq_exp->u.seq; el; el = el->tail) {
             last_expty = transExp(level, venv, tenv, el->head);
+
+            p = Tr_ExpList(last_expty.exp, NULL);
+            tail->tail = p;
+            tail = p;
         }
-        return expTy(NULL, actual_ty(last_expty.ty));
+        return expTy(
+                Tr_seqExp(head->tail), 
+                actual_ty(last_expty.ty));
     }
 }
 
@@ -407,13 +418,25 @@ static struct expty
 transLetExp(Tr_level level, S_table venv, S_table tenv, A_exp let_exp) {
     struct expty body_expty;
     A_decList dl;
+    Tr_exp dec_exp;
+    Tr_expList dec_exps = Tr_ExpList(NULL, NULL);
+    Tr_expList tail = dec_exps;
+    Tr_expList p;
 
     S_beginScope(venv);
     S_beginScope(tenv);
     for (dl = let_exp->u.let.decs; dl; dl = dl->tail) {
-        transDec(level, venv, tenv, dl->head);
+        dec_exp = transDec(level, venv, tenv, dl->head);
+
+        p = Tr_ExpList(dec_exp, NULL);
+        tail->tail = p;
+        tail = p;
     }
     body_expty = transExp(level, venv, tenv, let_exp->u.let.body);
+
+    p = Tr_ExpList(body_expty.exp, NULL);
+    tail->tail = p;
+    body_expty.exp = Tr_seqExp(dec_exps->tail);
     S_endScope(tenv);
     S_endScope(venv);
     return body_expty;
@@ -594,11 +617,12 @@ transFuncDec(Tr_level level, S_table venv, S_table tenv, A_dec func_dec) {
         LOOP_LABELS.is_nested = FALSE;
 
         for (; params && formal_tys && al; 
-                params = params->tail, formal_tys = formal_tys->tail, al = al->tail) {
+            params = params->tail, formal_tys = formal_tys->tail, al = al->tail) {
             S_enter(venv, params->head->name, 
                     E_VarEntry(al->head, formal_tys->head));
         }
         body_expty = transExp(new_level, venv, tenv, f->body);
+        Tr_procEntryExit(level, body_expty.exp);
         if (!type_equal(body_expty.ty, func_entry->u.fun.results)) {
             EM_error(func_dec->pos, "Function declared return type dimatch with body");
         }
@@ -755,15 +779,16 @@ Ty_ty transTy(S_table tenv, A_ty t) {
     }
 }
 
-void SEM_transProg(A_exp exp) {
+F_fragList SEM_transProg(A_exp exp) {
     S_table venv = E_base_venv(), tenv = E_base_tenv();
+    Tr_init();
     Tr_level outermost = Tr_outermost();
     Tr_level tiger_main = Tr_newLevel( outermost, Temp_namedlabel("tiger_main"), NULL);
-    transExp(tiger_main, venv, tenv, exp);
+    struct expty program = transExp(tiger_main, venv, tenv, exp);
+    Tr_procEntryExit(tiger_main, program.exp);
 
     /* Tr_print(tiger_main); */
     /* Tr_print(outermost); */
-
-    return ;
+    return Tr_getResult();
 }
 

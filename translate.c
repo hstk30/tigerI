@@ -10,7 +10,10 @@
 
 
 static Tr_level OUTERMOST_LEVEL = NULL;
-static F_fragList STR_FRAG_LIST = NULL;
+static F_fragList PROC_FRAG_HEAD = NULL;
+static F_fragList PROC_FRAG_TAIL = NULL;
+static F_fragList STR_FRAG_HEAD = NULL;
+static F_fragList STR_FRAG_TAIL = NULL;
 
 /*** stack frame or activation record rel ***/
 struct Tr_level_ {
@@ -147,6 +150,15 @@ joinPatch(patchList first, patchList second) {
     first->tail = second;
 
     return first;
+}
+
+Tr_expList Tr_ExpList(Tr_exp head, Tr_expList tail) {
+    Tr_expList p = checked_malloc(sizeof(*p));
+
+    p->head = head;
+    p->tail = tail;
+
+    return p;
 }
 
 static Tr_exp Tr_Ex(T_exp ex) {
@@ -422,33 +434,32 @@ Tr_exp Tr_intExp(int n) {
 
 Tr_exp Tr_stringExp(string str) {
     Temp_label l = Temp_newlabel();
-    STR_FRAG_LIST = F_FragList(F_StringFrag(l, str), STR_FRAG_LIST);
+    F_fragList p = F_FragList(F_StringFrag(l, str), NULL);
+    STR_FRAG_TAIL->tail = p;
+    STR_FRAG_TAIL = p;
 
     return Tr_Ex(T_Name(l));
 }
 
-Tr_exp Tr_recordExp(Tr_expList el) {
-    int nargs = 0;
+Tr_exp Tr_recordExp(Tr_expList el, int nvals) {
     Tr_expList iter;
     T_exp r = T_Temp(Temp_newtemp());
     T_stm init_stm = NULL;
 
+    T_stm creat_stm= T_Move(r, 
+                            F_externalCall("allocRecord", 
+                                T_ExpList(T_Const(nvals * F_wordSize), NULL)));
     /* 
-     * `init_stm` like `((NULL, ...), MOVE), MOVE)`,
+     * `init_stm` like `((creat_stm, ...), MOVE), MOVE)`,
      * will be linear later 
      */
-    for (iter = el; iter; iter = iter->tail) {
+    int i;
+    for (iter = el, i = 0; iter; iter = iter->tail, i++) {
         init_stm = T_Seq(
-                    init_stm, 
-                    T_Move(T_Mem(T_Binop(T_plus, r, T_Const(nargs * F_wordSize))), 
+                    creat_stm, 
+                    T_Move(T_Mem(T_Binop(T_plus, r, T_Const(i * F_wordSize))), 
                            unEx(iter->head))); 
-        nargs += 1;
     }
-    init_stm->u.SEQ.left = T_Move(
-            r, 
-            F_externalCall("allocRecord", 
-                T_ExpList(T_Const(nargs * F_wordSize), NULL)));
-
     return Tr_Ex(T_Eseq(init_stm, r));
 }
 
@@ -543,5 +554,42 @@ Tr_exp Tr_assignExp(Tr_exp var_exp, Tr_exp val_exp) {
             T_Move(
                 unEx(var_exp), 
                 unEx(val_exp)));
+}
+
+Tr_exp Tr_seqExp(Tr_expList exps) {
+    if (exps == NULL) {
+        return Tr_nop();
+    }
+
+    Tr_expList iter;
+    T_stm stm_seq = unNx(exps->head);
+    for (iter = exps->tail; iter; iter = iter->tail) {
+        stm_seq = T_Seq(stm_seq, unNx(iter->head));
+    }
+
+    return Tr_Nx(stm_seq);
+}
+
+void Tr_procEntryExit(Tr_level level, Tr_exp proc_body) {
+    T_stm with_ret = T_Move(T_Temp(F_RV()), unEx(proc_body));
+    T_stm body_stm = F_procEntryExit1(level->frame, with_ret);
+    F_frag f_proc = F_ProcFrag(body_stm, level->frame);
+
+    F_fragList p = F_FragList(f_proc, NULL);
+    PROC_FRAG_TAIL->tail = p;
+    PROC_FRAG_TAIL = p;
+}
+
+void Tr_init() {
+    PROC_FRAG_HEAD = F_FragList(NULL, NULL);
+    PROC_FRAG_TAIL = PROC_FRAG_HEAD;
+
+    STR_FRAG_HEAD = F_FragList(NULL, NULL);
+    STR_FRAG_TAIL = STR_FRAG_HEAD;
+}
+
+F_fragList Tr_getResult(void) {
+    PROC_FRAG_TAIL->tail = STR_FRAG_HEAD;
+    return PROC_FRAG_HEAD;
 }
 
