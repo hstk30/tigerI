@@ -262,22 +262,17 @@ static struct expty
 transSeqExp(Tr_level level, S_table venv, S_table tenv, A_exp seq_exp) {
     A_expList el;
     struct expty last_expty;
-    Tr_expList head = Tr_ExpList(NULL, NULL);
-    Tr_expList tail = head;
-    Tr_expList p;
+    Tr_expList seq_exps = NULL;
 
     if (seq_exp->u.seq == NULL) {
         return expTy(Tr_nop(), Ty_Void());
     } else {
         for (el = seq_exp->u.seq; el; el = el->tail) {
             last_expty = transExp(level, venv, tenv, el->head);
-
-            p = Tr_ExpList(last_expty.exp, NULL);
-            tail->tail = p;
-            tail = p;
+            seq_exps = Tr_ExpList(last_expty.exp, seq_exps);
         }
         return expTy(
-                Tr_seqExp(head->tail), 
+                Tr_seqExp(seq_exps), 
                 actual_ty(last_expty.ty));
     }
 }
@@ -327,7 +322,7 @@ transIfExp(Tr_level level, S_table venv, S_table tenv, A_exp if_exp) {
             return expTy(NULL, Ty_Void());
         } else {
             return expTy(
-                    Tr_ifExp(test_expty.exp, then_expty.exp, Tr_nop()), 
+                    Tr_ifExp(test_expty.exp, then_expty.exp, NULL), 
                     Ty_Void());
         }
     }
@@ -419,26 +414,19 @@ transLetExp(Tr_level level, S_table venv, S_table tenv, A_exp let_exp) {
     struct expty body_expty;
     A_decList dl;
     Tr_exp dec_exp;
-    Tr_expList dec_exps = Tr_ExpList(NULL, NULL);
-    Tr_expList tail = dec_exps;
-    Tr_expList p;
+    Tr_expList dec_exps = NULL;
 
     S_beginScope(venv);
     S_beginScope(tenv);
     for (dl = let_exp->u.let.decs; dl; dl = dl->tail) {
         dec_exp = transDec(level, venv, tenv, dl->head);
-
-        p = Tr_ExpList(dec_exp, NULL);
-        tail->tail = p;
-        tail = p;
+        dec_exps = Tr_ExpList(dec_exp, dec_exps);
     }
     body_expty = transExp(level, venv, tenv, let_exp->u.let.body);
-
-    p = Tr_ExpList(body_expty.exp, NULL);
-    tail->tail = p;
-    body_expty.exp = Tr_seqExp(dec_exps->tail);
+    body_expty.exp = Tr_seqExp(Tr_ExpList(body_expty.exp, dec_exps));
     S_endScope(tenv);
     S_endScope(venv);
+
     return body_expty;
 }
 
@@ -787,7 +775,6 @@ F_fragList SEM_transProg(A_exp exp) {
     struct expty program = transExp(tiger_main, venv, tenv, exp);
     Tr_procEntryExit(tiger_main, program.exp);
 
-    /* Tr_printTree(program.exp); */
     /* Tr_printLevel(tiger_main); */
     /* Tr_printLevel(outermost); */
     return Tr_getResult();

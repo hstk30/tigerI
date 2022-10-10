@@ -4,3 +4,4 @@ for entry in "$testcases"/*
 do
     ./semanttest $entry
 done
+

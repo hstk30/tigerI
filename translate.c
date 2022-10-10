@@ -127,6 +127,16 @@ static T_exp unEx(Tr_exp e);
 static T_stm unNx(Tr_exp e);
 static struct Cx unCx(Tr_exp e);
 
+static patchList 
+PatchList(Temp_label *head, patchList tail) {
+    patchList p = checked_malloc(sizeof(*p));   
+
+    p->head = head;
+    p->tail = tail;
+
+    return p;
+}
+
 static void 
 doPatch(patchList t, Temp_label label) {
     for (; t; t = t->tail) {
@@ -322,6 +332,7 @@ Tr_exp Tr_ifExp(Tr_exp test_exp, Tr_exp then_exp, Tr_exp else_exp) {
     Temp_label t = Temp_newlabel(), f = Temp_newlabel(), done = Temp_newlabel();
     T_exp r = T_Temp(Temp_newtemp());
 
+    /* TODO: `if exp then exp` */
     /* ex -- ex, has return value */
     if (then_exp->kind == Tr_ex && else_exp->kind == Tr_ex) {
         doPatch(cx_test.trues, t);
@@ -419,8 +430,11 @@ Tr_exp Tr_ifExp(Tr_exp test_exp, Tr_exp then_exp, Tr_exp else_exp) {
 /* 
  * TODO: `nil` is a constant pointer 
  */
-extern Temp_temp nil;
+static Temp_temp nil = NULL;
 Tr_exp Tr_nilExp() {
+    if (nil == NULL) {
+        nil = Temp_newtemp();
+    }
     return Tr_Ex(T_Temp(nil));
 }
 
@@ -440,9 +454,8 @@ Tr_exp Tr_stringExp(string str) {
 Tr_exp Tr_recordExp(Tr_expList el, int nvals) {
     Tr_expList iter;
     T_exp r = T_Temp(Temp_newtemp());
-    T_stm init_stm = NULL;
 
-    T_stm creat_stm= T_Move(r, 
+    T_stm init_stm = T_Move(r, 
                             F_externalCall("allocRecord", 
                                 T_ExpList(T_Const(nvals * F_wordSize), NULL)));
     /* 
@@ -452,9 +465,10 @@ Tr_exp Tr_recordExp(Tr_expList el, int nvals) {
     int i;
     for (iter = el, i = 0; iter; iter = iter->tail, i++) {
         init_stm = T_Seq(
-                    creat_stm, 
-                    T_Move(T_Mem(T_Binop(T_plus, r, T_Const(i * F_wordSize))), 
-                           unEx(iter->head))); 
+                        init_stm, 
+                        T_Move(
+                            T_Mem(T_Binop(T_plus, r, T_Const(i * F_wordSize))), 
+                            unEx(iter->head))); 
     }
     return Tr_Ex(T_Eseq(init_stm, r));
 }
@@ -552,24 +566,28 @@ Tr_exp Tr_assignExp(Tr_exp var_exp, Tr_exp val_exp) {
                 unEx(val_exp)));
 }
 
-Tr_exp Tr_seqExp(Tr_expList exps) {
-    if (exps == NULL) {
+Tr_exp Tr_seqExp(Tr_expList rev_exps) {
+    if (rev_exps == NULL) {
         return Tr_nop();
     }
 
     Tr_expList iter;
-    T_stm stm_seq = unNx(exps->head);
-    for (iter = exps->tail; iter; iter = iter->tail) {
-        stm_seq = T_Seq(stm_seq, unNx(iter->head));
+    /* last exp is the `seq's` return val */
+    T_exp seq_exps = unEx(rev_exps->head);
+
+    for (iter = rev_exps->tail; iter; iter = iter->tail) {
+        seq_exps = T_Eseq(unNx(iter->head), seq_exps);
     }
 
-    return Tr_Nx(stm_seq);
+    return Tr_Ex(seq_exps);
 }
 
 void Tr_procEntryExit(Tr_level level, Tr_exp proc_body) {
     T_stm with_ret = T_Move(T_Temp(F_RV()), unEx(proc_body));
     T_stm body_stm = F_procEntryExit1(level->frame, with_ret);
     F_frag f_proc = F_ProcFrag(body_stm, level->frame);
+
+    Tr_printTree(proc_body);
 
     F_fragList p = F_FragList(f_proc, NULL);
     PROC_FRAG_TAIL->tail = p;

@@ -109,7 +109,22 @@ F_access F_allocLocal(F_frame f, bool escape) {
     return access;
 }
 
-/*** translate interface ***/
+static Temp_temp FP = NULL;
+Temp_temp F_FP() {
+    if (FP == NULL) {
+        FP = Temp_newtemp();
+    }
+    return FP;
+}
+
+static Temp_temp RV = NULL;
+Temp_temp F_RV() {
+    if (RV == NULL) {
+        RV = Temp_newtemp();
+    }
+    return RV;
+}
+
 T_exp F_externalCall(string s, T_expList args) {
     return T_Call(T_Name(Temp_namedlabel(s)), args);
 }
@@ -150,8 +165,6 @@ F_fragList F_FragList(F_frag head, F_fragList tail) {
 
     return p;
 }
-/*** end ***/
-
 
 T_stm F_procEntryExit1(F_frame frame, T_stm stm) {
     return stm;
