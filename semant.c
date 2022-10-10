@@ -629,7 +629,7 @@ transFuncDec(Tr_level level, S_table venv, S_table tenv, A_dec func_dec) {
 
         LOOP_LABELS.is_nested = temp;
         S_endScope(venv);
-        /* Tr_print(new_level); */
+        /* Tr_printLevel(new_level); */
     }
 
     return Tr_nop();
@@ -787,8 +787,9 @@ F_fragList SEM_transProg(A_exp exp) {
     struct expty program = transExp(tiger_main, venv, tenv, exp);
     Tr_procEntryExit(tiger_main, program.exp);
 
-    /* Tr_print(tiger_main); */
-    /* Tr_print(outermost); */
+    /* Tr_printTree(program.exp); */
+    /* Tr_printLevel(tiger_main); */
+    /* Tr_printLevel(outermost); */
     return Tr_getResult();
 }
 

@@ -7,6 +7,7 @@
 
 #include "translate.h"
 #include "frame.h"
+#include "printtree.h"
 
 
 static Tr_level OUTERMOST_LEVEL = NULL;
@@ -92,11 +93,6 @@ Tr_access Tr_allocLocal(Tr_level level, bool escape) {
     F_access fa = F_allocLocal(level->frame, escape); 
 
     return Tr_Access(level, fa);
-}
-
-/* debug function */
-void Tr_print(Tr_level level) {
-    F_print(level->frame);
 }
 
 /*** stack frame end ***/
@@ -592,4 +588,14 @@ F_fragList Tr_getResult(void) {
     PROC_FRAG_TAIL->tail = STR_FRAG_HEAD;
     return PROC_FRAG_HEAD;
 }
+
+/* debug function */
+void Tr_printLevel(Tr_level level) {
+    F_print(level->frame);
+}
+
+void Tr_printTree(Tr_exp proc_exp) {
+    printStmList(stdout, T_StmList(unNx(proc_exp), NULL));
+}
+
 

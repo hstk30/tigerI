@@ -54,6 +54,7 @@ Tr_exp Tr_seqExp(Tr_expList rev_stm_seq);
 void Tr_procEntryExit(Tr_level level, Tr_exp proc_exp);
 F_fragList Tr_getResult(void);
 
-void Tr_print(Tr_level level);
+void Tr_printLevel(Tr_level level);
+void Tr_printTree(Tr_exp proc_exp);
 
 #endif

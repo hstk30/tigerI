@@ -14,6 +14,7 @@ int main(int argc, char **argv) {
         fprintf(stderr,"usage: a.out filename\n"); 
         exit(1); 
     }
+
     A_exp absyn_tree_root = parse(argv[1]);
     if (absyn_tree_root) {
         Esc_findEscape(absyn_tree_root);
