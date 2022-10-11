@@ -4,7 +4,7 @@ CFLAGS=-g -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
 LEX_OBJECTS = lex.yy.o errormsg.o util.o 
 ABSYN_OBJECTS = $(LEX_OBJECTS) y.tab.o parse.o absyn.o table.o symbol.o 
 SEMANT_OBJECTS = $(ABSYN_OBJECTS) env.o types.o escape.o \
-					 temp.o translate.o riscvframe.o semant.o 
+					 temp.o tree.o translate.o riscvframe.o semant.o 
 
 lextest: $(LEX_OBJECTS) lextest.o 
 	$(CC) -o $@ lextest.o $(LEX_OBJECTS)
@@ -12,8 +12,8 @@ lextest: $(LEX_OBJECTS) lextest.o
 asttest: $(ABSYN_OBJECTS) prabsyn.o asttest.o
 	$(CC) -o $@ prabsyn.o asttest.o $(ABSYN_OBJECTS)
 
-semanttest: $(SEMANT_OBJECTS) semanttest.o 
-	$(CC) -o $@ semanttest.o $(SEMANT_OBJECTS) 
+semanttest: $(SEMANT_OBJECTS) semanttest.o  printtree.o
+	$(CC) -o $@ semanttest.o printtree.o $(SEMANT_OBJECTS) 
 
 y.tab.o: y.tab.c 
 errormsg.o: errormsg.h util.h
@@ -27,7 +27,9 @@ types.o: types.h util.h symbol.h
 semant.o: semant.h
 escape.o: escape.h
 temp.o: temp.h
+tree.o: tree.h
 translate.o: translate.h
+printtree.o: printtree.h
 
 riscvframe.o: frame.h riscvframe.c
 

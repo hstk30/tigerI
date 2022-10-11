@@ -36,7 +36,7 @@ struct T_stm_ {
         struct { 
             T_relOp op; 
             T_exp left, right;
-            Temp_label true, false;
+            Temp_label l_true, l_false;
         } CJUMP;
         struct {T_exp dst, src;} MOVE;
         T_exp EXP;
@@ -60,14 +60,14 @@ struct T_exp_ {
     } u;
 };
 
-T_expList T_ExpList (T_exp head, T_expList tail);
-T_stmList T_StmList (T_stm head, T_stmList tail);
+T_expList T_ExpList(T_exp head, T_expList tail);
+T_stmList T_StmList(T_stm head, T_stmList tail);
 
 T_stm T_Seq(T_stm left, T_stm right);
 T_stm T_Label(Temp_label);
 T_stm T_Jump(T_exp exp, Temp_labelList labels);
 T_stm T_Cjump(T_relOp op, T_exp left, T_exp right, 
-        Temp_label true, Temp_label false);
+        Temp_label l_true, Temp_label l_false);
 T_stm T_Move(T_exp, T_exp);
 T_stm T_Exp(T_exp);
 

@@ -6,6 +6,7 @@ type intlist = {hd: int, tl: intlist}
 /* define a tree */
 type tree ={key: int, children: treelist}
 type treelist = {hd: tree, tl: treelist}
+/* above typedec is processed by one `TransTyDec`*/
 
 var lis:intlist := intlist { hd=0, tl= nil } 
 

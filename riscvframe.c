@@ -2,6 +2,9 @@
 #include "temp.h"
 #include "util.h"
 
+
+const int F_wordSize = 8;
+
 struct F_frame_ {
     Temp_label name;
     /* formals and local variable */
@@ -104,6 +107,67 @@ F_access F_allocLocal(F_frame f, bool escape) {
     }
 
     return access;
+}
+
+static Temp_temp FP = NULL;
+Temp_temp F_FP() {
+    if (FP == NULL) {
+        FP = Temp_newtemp();
+    }
+    return FP;
+}
+
+static Temp_temp RV = NULL;
+Temp_temp F_RV() {
+    if (RV == NULL) {
+        RV = Temp_newtemp();
+    }
+    return RV;
+}
+
+T_exp F_externalCall(string s, T_expList args) {
+    return T_Call(T_Name(Temp_namedlabel(s)), args);
+}
+
+T_exp F_Exp(F_access access, T_exp frame_ptr) {
+    if (access->kind == inFrame) {
+        return T_Mem(T_Binop(T_plus, frame_ptr, T_Const(access->u.offset)));
+    } else {
+        return T_Mem(T_Temp(access->u.reg));
+    }
+}
+
+F_frag F_StringFrag(Temp_label label, string str) {
+    F_frag p = checked_malloc(sizeof(*p));
+
+    p->kind = F_stringFrag;
+    p->u.stringg.label = label;
+    p->u.stringg.str = str;
+
+    return p;
+}
+
+F_frag F_ProcFrag(T_stm body, F_frame frame) {
+    F_frag p = checked_malloc(sizeof(*p));
+
+    p->kind = F_procFrag;
+    p->u.proc.body = body;
+    p->u.proc.frame = frame;
+
+    return p;
+}
+
+F_fragList F_FragList(F_frag head, F_fragList tail) {
+    F_fragList p = checked_malloc(sizeof(*p));
+
+    p->head = head;
+    p->tail = tail;
+
+    return p;
+}
+
+T_stm F_procEntryExit1(F_frame frame, T_stm stm) {
+    return stm;
 }
 
 /* debug info */
