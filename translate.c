@@ -230,7 +230,15 @@ static T_stm
 unNx(Tr_exp e) {
     switch (e->kind) {
         case Tr_ex: return T_Exp(e->u.ex);
-        case Tr_cx: return e->u.cx.stm; /* TODO */
+        case Tr_cx: {
+            /* test46.tig
+             * Can't just like `return e->u.cx.stm;` 
+             * For `CJUMP` must set `l_true` and `l_false` */
+            Temp_label t = Temp_newlabel(), f = Temp_newlabel();
+            doPatch(e->u.cx.trues, t);
+            doPatch(e->u.cx.falses, f);
+            return e->u.cx.stm;
+        }
         case Tr_nx: return e->u.nx;
         default: assert(0);
     }
@@ -250,7 +258,7 @@ unCx(Tr_exp e) {
             };
         }
         case Tr_cx: return e->u.cx;
-        case Tr_nx:
+        case Tr_nx:     /* Can't unCx a nx exp */
         default: assert(0);
     }
 }
@@ -321,8 +329,8 @@ Tr_exp Tr_cmpExp(A_oper op, Tr_exp left, Tr_exp right) {
         default: assert(0);
     }
     T_stm stm = T_Cjump(t_op, unEx(left), unEx(right), NULL, NULL);
-    patchList trues = PatchList(&stm->u.CJUMP.l_true, NULL);
-    patchList falses = PatchList(&stm->u.CJUMP.l_false, NULL);
+    patchList trues = PatchList(&(stm->u.CJUMP.l_true), NULL);
+    patchList falses = PatchList(&(stm->u.CJUMP.l_false), NULL);
 
     return Tr_Cx(trues, falses, stm);
 }
@@ -332,30 +340,19 @@ Tr_exp Tr_ifExp(Tr_exp test_exp, Tr_exp then_exp, Tr_exp else_exp) {
     Temp_label t = Temp_newlabel(), f = Temp_newlabel(), done = Temp_newlabel();
     T_exp r = T_Temp(Temp_newtemp());
 
-    /* TODO: `if exp then exp` */
-    /* ex -- ex, has return value */
-    if (then_exp->kind == Tr_ex && else_exp->kind == Tr_ex) {
+    if (else_exp == NULL) {
         doPatch(cx_test.trues, t);
-        doPatch(cx_test.falses, f);
-
-        return Tr_Ex(
-                T_Eseq(
+        doPatch(cx_test.falses, done);
+        return Tr_Nx(
+                T_Seq(
                     cx_test.stm,
-                    T_Eseq(
+                    T_Seq(
                         T_Label(t),
-                        T_Eseq(
-                            T_Move(r, unEx(then_exp)),
-                            T_Eseq(
-                                T_Jump(T_Name(done), Temp_LabelList(done, NULL)),
-                                T_Eseq(
-                                    T_Label(f),
-                                    T_Eseq(
-                                        T_Move(r, unEx(else_exp)),
-                                        T_Eseq(
-                                            T_Label(done), 
-                                            r))))))));
+                        T_Seq(
+                            unNx(then_exp),
+                            T_Label(done)))));
     }
-
+    
     /* nx -- nx, no return value */
     if (then_exp->kind == Tr_nx && else_exp->kind == Tr_nx) {
         doPatch(cx_test.trues, t);
@@ -423,6 +420,32 @@ Tr_exp Tr_ifExp(Tr_exp test_exp, Tr_exp then_exp, Tr_exp else_exp) {
                                                     r))))))))));
     }
 
+    /* ex -- ex, ex -- nx, ex -- cx, has return value 
+     * like `if exp then func() else stm`  
+     * func() has no return value, but is a `Tr_Ex`
+     * so return type `Void` will cast to `Int`
+     */
+    if (then_exp->kind == Tr_ex || else_exp->kind == Tr_ex) {
+        doPatch(cx_test.trues, t);
+        doPatch(cx_test.falses, f);
+
+        return Tr_Ex(
+                T_Eseq(
+                    cx_test.stm,
+                    T_Eseq(
+                        T_Label(t),
+                        T_Eseq(
+                            T_Move(r, unEx(then_exp)),
+                            T_Eseq(
+                                T_Jump(T_Name(done), Temp_LabelList(done, NULL)),
+                                T_Eseq(
+                                    T_Label(f),
+                                    T_Eseq(
+                                        T_Move(r, unEx(else_exp)),
+                                        T_Eseq(
+                                            T_Label(done), 
+                                            r))))))));
+    }
     /* other `kind` pair should be blocked by type check */
     assert(0);
 }
@@ -587,7 +610,7 @@ void Tr_procEntryExit(Tr_level level, Tr_exp proc_body) {
     T_stm body_stm = F_procEntryExit1(level->frame, with_ret);
     F_frag f_proc = F_ProcFrag(body_stm, level->frame);
 
-    Tr_printTree(proc_body);
+    /* Tr_printTree(proc_body); */
 
     F_fragList p = F_FragList(f_proc, NULL);
     PROC_FRAG_TAIL->tail = p;
@@ -615,5 +638,4 @@ void Tr_printLevel(Tr_level level) {
 void Tr_printTree(Tr_exp proc_exp) {
     printStmList(stdout, T_StmList(unNx(proc_exp), NULL));
 }
-
 

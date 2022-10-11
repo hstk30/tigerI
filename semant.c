@@ -75,12 +75,16 @@ transOpExp(Tr_level level, S_table venv, S_table tenv, A_exp opexp) {
         case A_timesOp:
         case A_divideOp: {
             /* TODO: divide zero error */
-            if (left_expty.ty->kind != Ty_int) 
+            if (left_expty.ty->kind != Ty_int) {
                 EM_error(opexp->u.op.left->pos, 
                         "Opexp `+ - * /` clause <type: int> required");
-            if (right_expty.ty->kind != Ty_int) 
+                return expTy(Tr_nop(), Ty_Int());
+            }
+            if (right_expty.ty->kind != Ty_int) {
                 EM_error(opexp->u.op.right->pos, 
                         "Opexp `+ - * /` clause integer required");
+                return expTy(Tr_nop(), Ty_Int());
+            }
             return expTy(
                     Tr_arithExp(oper, left_expty.exp, right_expty.exp), 
                     Ty_Int());
@@ -91,6 +95,7 @@ transOpExp(Tr_level level, S_table venv, S_table tenv, A_exp opexp) {
         case A_geOp: {
             if (left_expty.ty->kind != Ty_int || right_expty.ty->kind != Ty_int) {
                 EM_error(opexp->pos, "Opexp `< <= > >=`clause <type: int> required");
+                exit(0);
             }
             return expTy(
                     Tr_cmpExp(oper, left_expty.exp, right_expty.exp), 
@@ -101,6 +106,7 @@ transOpExp(Tr_level level, S_table venv, S_table tenv, A_exp opexp) {
              /* Does `void` need special handle? */
             if (!type_equal(left_expty.ty, right_expty.ty)) {
                 EM_error(opexp->pos, "Opexp `<> =` clause type dismatch");
+                exit(0);
             }
             return expTy(
                     Tr_cmpExp(oper, left_expty.exp, right_expty.exp), 
@@ -116,7 +122,7 @@ makeArgs(Tr_level level, S_table venv, S_table tenv,
     if ((args == NULL && formals != NULL) ||
             (args != NULL && formals == NULL)) {
         EM_error(pos, "Function call args inconsistent with declare");
-        exit(1);
+        exit(0);
     }
     if (args == NULL && formals == NULL) {
         return NULL;
@@ -125,7 +131,7 @@ makeArgs(Tr_level level, S_table venv, S_table tenv,
     struct expty arg_expty = transExp(level, venv, tenv, args->head);
     if (!type_equal(arg_expty.ty, formals->head)) {
         EM_error(args->head->pos, "Function call args type dismatch");
-        exit(1);
+        exit(0);
     }
     return Tr_ExpList(
             arg_expty.exp,
@@ -143,7 +149,7 @@ transCallExp(Tr_level level, S_table venv, S_table tenv, A_exp call_exp) {
     if (func == NULL) {
         EM_error(call_exp->pos, "Function %s use before declare", 
                 S_name(call_exp->u.call.func));
-        return expTy(NULL, Ty_Void());
+        return expTy(Tr_nop(), Ty_Void());
     }
     Tr_expList args = makeArgs(level, venv, tenv, 
             call_exp->u.call.args, func->u.fun.formals, call_exp->pos);
@@ -170,7 +176,7 @@ makeRecordVals(Tr_level level, S_table venv, S_table tenv,
     if ((kv == NULL && kt != NULL) ||
             (kv != NULL && kt == NULL)) {
         EM_error(pos, "Record create length inconsistent with declare");
-        exit(1);
+        exit(0);
     }
     if (kv == NULL && kt == NULL) {
         return NULL;
@@ -179,7 +185,7 @@ makeRecordVals(Tr_level level, S_table venv, S_table tenv,
     if (kv->head->name != kt->head->name) {
         EM_error(pos, "Record key name %s inconsistent with declare %s", 
             S_name(kv->head->name), S_name(kt->head->name));
-        exit(1);
+        exit(0);
     }
 
     struct expty val_expty = transExp(level, venv, tenv, kv->head->exp);
@@ -187,7 +193,7 @@ makeRecordVals(Tr_level level, S_table venv, S_table tenv,
     if (!type_equal(val_expty.ty, kt->head->ty)) {
         EM_error(kv->head->exp->pos, 
                 "Record value type inconsistent with declare");
-        exit(1);
+        exit(0);
     }
     return Tr_ExpList(
             val_expty.exp,
@@ -202,12 +208,12 @@ transRecodeExp(Tr_level level, S_table venv, S_table tenv, A_exp record_exp) {
     if (deced_ty == NULL) {
         EM_error(record_exp->pos, "Record type %s use before declare", 
                 S_name(record_exp->u.record.typ));
-        return expTy(NULL, Ty_Nil());
+        return expTy(Tr_nop(), Ty_Nil());
     }
     record_ty = actual_ty(deced_ty);
     if (record_ty->kind != Ty_record) {
         EM_error(record_exp->pos, "Expect record type before `{...}`");
-        return expTy(NULL, Ty_Nil());
+        return expTy(Tr_nop(), Ty_Nil());
     }
     Tr_expList val_exps = makeRecordVals(level, venv, tenv, 
             record_exp->u.record.fields, record_ty->u.record, record_exp->pos, &nvals);
@@ -228,26 +234,26 @@ transArrayExp(Tr_level level, S_table venv, S_table tenv, A_exp array_exp) {
     if (deced_ty == NULL) {
         EM_error(array_exp->pos, "Array type %s use before declare", 
                 S_name(array_exp->u.array.typ));
-        exit(1);
+        return expTy(Tr_nop(), Ty_Void());
     }
 
     array_ty = actual_ty(deced_ty);
     if (array_ty->kind != Ty_array) {
         EM_error(array_exp->pos, "Expect array type before `[exp] of exp`");
-        exit(1);
+        return expTy(Tr_nop(), Ty_Void());
     }
 
     struct expty size_expty = transExp(level, venv, tenv, array_exp->u.array.size);
     if (size_expty.ty->kind != Ty_int) {
         EM_error(array_exp->pos, "Array size clause must be int");
-        exit(1);
+        return expTy(Tr_nop(), Ty_Void());
     }
 
     struct expty init_expty = transExp(level, venv, tenv, array_exp->u.array.init);
     /* NOTE: array items type compare `array_ty->u.array` instead of `array_ty` */
     if (!type_equal(init_expty.ty, array_ty->u.array)) {
         EM_error(array_exp->pos, "Array init clause type dismatch");
-        exit(1);
+        return expTy(Tr_nop(), Ty_Void());
     }
 
     return expTy(
@@ -289,7 +295,7 @@ transAssignExp(Tr_level level, S_table venv, S_table tenv, A_exp assign_exp) {
      */
     if (!type_equal(var_expty.ty, val_expty.ty)) {
         EM_error(assign_exp->pos, "Assign clause type dismatch");
-        exit(1);
+        return expTy(Tr_nop(), Ty_Void());
     }
 
     return expTy(
@@ -302,7 +308,7 @@ transIfExp(Tr_level level, S_table venv, S_table tenv, A_exp if_exp) {
     struct expty test_expty = transExp(level, venv, tenv, if_exp->u.iff.test);
     if (test_expty.ty->kind != Ty_int) {
         EM_error(if_exp->pos, "If test clause must be int");
-        return expTy(NULL, Ty_Void());
+        return expTy(Tr_nop(), Ty_Void());
     }
 
     struct expty then_expty = transExp(level, venv, tenv, if_exp->u.iff.then);
@@ -310,7 +316,7 @@ transIfExp(Tr_level level, S_table venv, S_table tenv, A_exp if_exp) {
         struct expty else_expty = transExp(level, venv, tenv, if_exp->u.iff.elsee);
         if (!type_equal(then_expty.ty, else_expty.ty)) {
             EM_error(if_exp->pos, "IF THEN ELSE clause THEN ELSE type dismatch");
-            return expTy(NULL, Ty_Void());
+            return expTy(Tr_nop(), Ty_Void());
         } else {
             return expTy(
                     Tr_ifExp(test_expty.exp, then_expty.exp, else_expty.exp), 
@@ -319,7 +325,7 @@ transIfExp(Tr_level level, S_table venv, S_table tenv, A_exp if_exp) {
     } else {
         if (then_expty.ty->kind != Ty_void) {
             EM_error(if_exp->pos, "IF THEN clause THEN must return void");
-            return expTy(NULL, Ty_Void());
+            return expTy(Tr_nop(), Ty_Void());
         } else {
             return expTy(
                     Tr_ifExp(test_expty.exp, then_expty.exp, NULL), 
@@ -332,9 +338,8 @@ static struct expty
 transWhileExp(Tr_level level, S_table venv, S_table tenv, A_exp while_exp) {
     struct expty test_expty = transExp(level, venv, tenv, while_exp->u.whilee.test);
     if (test_expty.ty->kind != Ty_int) {
-        /* Not return, just go through */
         EM_error(while_exp->pos, "While test clause must be int");
-        exit(1);
+        return expTy(Tr_nop(), Ty_Void());
     }
 
     bool temp = LOOP_LABELS.is_nested;
@@ -345,7 +350,7 @@ transWhileExp(Tr_level level, S_table venv, S_table tenv, A_exp while_exp) {
     struct expty body_expty = transExp(level, venv, tenv, while_exp->u.whilee.body);
     if (body_expty.ty->kind != Ty_void) {
         EM_error(while_exp->pos, "WHILE body clause must be void");
-        exit(1);
+        return expTy(Tr_nop(), Ty_Void());
     }
 
     LOOP_LABELS.done_labels = LOOP_LABELS.done_labels->tail;
@@ -363,7 +368,7 @@ transForExp(Tr_level level, S_table venv, S_table tenv, A_exp for_exp) {
     
     if (lo_expty.ty->kind != Ty_int || hi_expty.ty->kind != Ty_int) {
         EM_error(for_exp->pos, "For lo, hi clause must be int");
-        exit(1);
+        return expTy(Tr_nop(), Ty_Void());
     }
 
     S_beginScope(venv);
@@ -385,7 +390,7 @@ transForExp(Tr_level level, S_table venv, S_table tenv, A_exp for_exp) {
 
     if (body_expty.ty->kind != Ty_void) {
         EM_error(for_exp->pos, "For body clause must return void");
-        exit(1);
+        return expTy(Tr_nop(), Ty_Void());
     }
     return expTy(
             Tr_forExp(lo_expty.exp, hi_expty.exp, body_expty.exp, done), 
@@ -396,7 +401,7 @@ static struct expty
 transBreakExp(Tr_level level, S_table venv, S_table tenv, A_exp brk_exp) {
     if (!LOOP_LABELS.is_nested) {
         EM_error(brk_exp->pos, "Break clause outside loop");
-        exit(1);
+        return expTy(Tr_nop(), Ty_Void());
     }
 
     Temp_label done = LOOP_LABELS.done_labels->head;
@@ -441,7 +446,7 @@ transSimpleVar(Tr_level level, S_table venv, S_table tenv, A_var simple_var) {
     } else {
         EM_error(simple_var->pos, "Variable %s use before declare", 
                 S_name(simple_var->u.simple));
-        exit(1);
+        return expTy(Tr_nop(), Ty_Void());
     }
 }
 
@@ -454,7 +459,7 @@ transFieldVar(Tr_level level, S_table venv, S_table tenv, A_var field_var) {
 
     if (record_expty.ty->kind != Ty_record) {
         EM_error(field_var->pos, "Record field operate <type: record> required");
-        return expTy(NULL, Ty_Int());
+        return expTy(Tr_nop(), Ty_Int());
     }
 
     Ty_fieldList iter;
@@ -470,7 +475,7 @@ transFieldVar(Tr_level level, S_table venv, S_table tenv, A_var field_var) {
 
     EM_error(field_var->pos, "Record not have the key: %s", 
             S_name(field_var->u.field.sym));
-    return expTy(NULL, Ty_Int());
+    return expTy(Tr_nop(), Ty_Int());
 }
 
 /*
@@ -484,14 +489,14 @@ transSubscriptVar(Tr_level level, S_table venv, S_table tenv, A_var subscript_va
     if (array_expty.ty->kind != Ty_array) {
         EM_error(subscript_var->pos, 
                 "Array subscript operate <type: array> required");
-        return expTy(NULL, Ty_Int());
+        return expTy(Tr_nop(), Ty_Int());
     }
 
     struct expty idx_expty = transExp(level, venv, tenv, 
                                       subscript_var->u.subscript.exp);
     if (idx_expty.ty->kind != Ty_int) {
         EM_error(subscript_var->pos, "Array index <type: int> required");
-        return expTy(NULL, Ty_Int());
+        return expTy(Tr_nop(), Ty_Int());
     }
     /* TODO: check out of index error */
     return expTy(
@@ -509,18 +514,18 @@ transVarDec(Tr_level level, S_table venv, S_table tenv, A_dec var_dec) {
         if (deced_ty == NULL) {
             EM_error(var_dec->pos, "Type %s use before declare", 
                     S_name(var_dec->u.var.typ));
-            exit(1);
+            return Tr_nop();
         }
         if (!type_equal(deced_ty, init_expty.ty)) {
             EM_error(var_dec->pos, "Variable init type dismatch");
-            exit(1);
+            return Tr_nop();
         }
     } else {
         /* test45.tig */
         if (init_expty.ty->kind == Ty_nil) {
             EM_error(var_dec->pos, 
                     "Variable init `nil` can only used in declared record type");
-            exit(1);
+            return Tr_nop();
         }
     }
 
@@ -734,7 +739,7 @@ struct expty transExp(Tr_level level, S_table venv, S_table tenv, A_exp a) {
         case A_ifExp: return transIfExp(level, venv, tenv, a);
         case A_whileExp: return transWhileExp(level, venv, tenv, a);
         case A_forExp: return transForExp(level, venv, tenv, a);
-        case A_breakExp: return transBreakExp(level, venv, tenv, a);  /* check used by `while` `for` */
+        case A_breakExp: return transBreakExp(level, venv, tenv, a);  
         case A_letExp: return transLetExp(level, venv, tenv, a);
         default: assert(0);
     }
