@@ -1,5 +1,6 @@
 CC=cc
-CFLAGS=-g -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
+CFLAGS=-g -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast 
+CFLAGS+=-D TG_DEBUG
 
 LEX_OBJECTS = lex.yy.o errormsg.o util.o 
 ABSYN_OBJECTS = $(LEX_OBJECTS) y.tab.o parse.o absyn.o table.o symbol.o 
