@@ -610,7 +610,9 @@ void Tr_procEntryExit(Tr_level level, Tr_exp proc_body) {
     T_stm body_stm = F_procEntryExit1(level->frame, with_ret);
     F_frag f_proc = F_ProcFrag(body_stm, level->frame);
 
-    /* Tr_printTree(proc_body); */
+#ifdef TG_DEBUG
+    Tr_printTree(proc_body);
+#endif
 
     F_fragList p = F_FragList(f_proc, NULL);
     PROC_FRAG_TAIL->tail = p;
