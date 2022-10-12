@@ -8,8 +8,14 @@
 #define CANON_H_
 
 typedef struct C_stmListList_ *C_stmListList;
-struct C_block { C_stmListList stmLists; Temp_label label;};
-struct C_stmListList_ { T_stmList head; C_stmListList tail;};
+struct C_block {
+    C_stmListList stmLists; 
+    Temp_label label;
+};
+struct C_stmListList_ {
+    T_stmList head; 
+    C_stmListList tail;
+};
 
 /* 
  * From an arbitrary Tree statement, produce a list of cleaned trees
