@@ -5,7 +5,7 @@ CFLAGS+=-D TG_DEBUG
 LEX_OBJECTS = lex.yy.o errormsg.o util.o 
 ABSYN_OBJECTS = $(LEX_OBJECTS) y.tab.o parse.o absyn.o table.o symbol.o 
 SEMANT_OBJECTS = $(ABSYN_OBJECTS) env.o types.o escape.o \
-					 temp.o tree.o translate.o riscvframe.o semant.o 
+					 temp.o tree.o translate.o riscvframe.o semant.o canon.o
 
 lextest: $(LEX_OBJECTS) lextest.o 
 	$(CC) -o $@ lextest.o $(LEX_OBJECTS)
@@ -31,6 +31,7 @@ temp.o: temp.h
 tree.o: tree.h
 translate.o: translate.h
 printtree.o: printtree.h
+canon.o: canon.h
 
 riscvframe.o: frame.h riscvframe.c
 

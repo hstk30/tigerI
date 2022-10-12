@@ -1,0 +1,9 @@
+let
+    function fib(t: int): int = 
+        if (t < 2)
+        then t
+        else fib(t - 1) + fib(t - 2)
+in
+    fib(5)
+end
+

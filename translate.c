@@ -8,6 +8,7 @@
 #include "translate.h"
 #include "frame.h"
 #include "printtree.h"
+#include "canon.h"
 
 
 static Tr_level OUTERMOST_LEVEL = NULL;
@@ -611,7 +612,7 @@ void Tr_procEntryExit(Tr_level level, Tr_exp proc_body) {
     F_frag f_proc = F_ProcFrag(body_stm, level->frame);
 
 #ifdef TG_DEBUG
-    Tr_printTree(proc_body);
+    Tr_printTree(Tr_Nx(body_stm));
 #endif
 
     F_fragList p = F_FragList(f_proc, NULL);
@@ -638,6 +639,8 @@ void Tr_printLevel(Tr_level level) {
 }
 
 void Tr_printTree(Tr_exp proc_exp) {
-    printStmList(stdout, T_StmList(unNx(proc_exp), NULL));
+    T_stmList sl = C_linearize(unNx(proc_exp));
+    struct C_block b = C_basicBlocks(sl);
+    printStmList(stdout, C_traceSchedule(b));
 }
 

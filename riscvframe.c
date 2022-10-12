@@ -167,7 +167,8 @@ F_fragList F_FragList(F_frag head, F_fragList tail) {
 }
 
 T_stm F_procEntryExit1(F_frame frame, T_stm stm) {
-    return stm;
+    /* TODO: add function name label here temporarily */
+    return T_Seq(T_Label(frame->name), stm);
 }
 
 /* debug info */

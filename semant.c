@@ -571,6 +571,7 @@ transFuncDec(Tr_level level, S_table venv, S_table tenv, A_dec func_dec) {
     Ty_tyList formal_tys = NULL;
     Ty_ty result_ty = NULL;
     E_enventry func_entry = NULL;
+    Temp_label func_label;
     Tr_level new_level;
     Tr_accessList al;
     U_boolList escape_params;
@@ -579,8 +580,9 @@ transFuncDec(Tr_level level, S_table venv, S_table tenv, A_dec func_dec) {
     /* first time collect function head info */
     for (fl = func_dec->u.function; fl; fl = fl->tail) {
         f = fl->head;
+        func_label = Temp_namedlabel(S_name(f->name));
         escape_params = makeBoolList(f->params);
-        new_level = Tr_newLevel(level, Temp_newlabel(), escape_params);
+        new_level = Tr_newLevel(level, func_label, escape_params);
         formal_tys = makeFormalTyList(tenv, f->params);
         if (f->result) {
             result_ty = S_look(tenv, f->result);
@@ -591,8 +593,7 @@ transFuncDec(Tr_level level, S_table venv, S_table tenv, A_dec func_dec) {
         } else {
             result_ty = Ty_Void();
         }
-        S_enter(venv, f->name, 
-                E_FunEntry(new_level, Temp_newlabel(), formal_tys, result_ty));
+        S_enter(venv, f->name, E_FunEntry(new_level, func_label, formal_tys, result_ty));
     }
 
     /* second time handle function body */
@@ -615,7 +616,7 @@ transFuncDec(Tr_level level, S_table venv, S_table tenv, A_dec func_dec) {
                     E_VarEntry(al->head, formal_tys->head));
         }
         body_expty = transExp(new_level, venv, tenv, f->body);
-        Tr_procEntryExit(level, body_expty.exp);
+        Tr_procEntryExit(new_level, body_expty.exp);
         if (!type_equal(body_expty.ty, func_entry->u.fun.results)) {
             EM_error(func_dec->pos, "Function declared return type dimatch with body");
         }
