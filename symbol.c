@@ -34,13 +34,14 @@ static int streq(string a, string b) {
 }
 
 S_symbol S_Symbol(string name) {
-    int index= hash(name) % SIZE;
+    int index = hash(name) % SIZE;
     S_symbol syms = hashtable[index], sym;
 
     for(sym=syms; sym; sym=sym->next)
-        if (streq(sym->name,name)) return sym;
+        if (streq(sym->name, name)) 
+            return sym;
     sym = mksymbol(name,syms);
-    hashtable[index]=sym;
+    hashtable[index] = sym;
 
     return sym;
 }

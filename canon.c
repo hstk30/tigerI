@@ -26,7 +26,8 @@ static T_stmList getNext(void);
 static expRefList 
 ExpRefList(T_exp *head, expRefList tail) {
     expRefList p = (expRefList)checked_malloc(sizeof *p);
-    p->head=head; p->tail=tail;
+    p->head = head; 
+    p->tail = tail;
     return p;
 }
 
@@ -167,8 +168,8 @@ T_stmList C_linearize(T_stm stm) {
 
 static C_stmListList StmListList(T_stmList head, C_stmListList tail) {
     C_stmListList p = (C_stmListList)checked_malloc(sizeof *p);
-    p->head=head; 
-    p->tail=tail;
+    p->head = head; 
+    p->tail = tail;
     return p;
 }
  
@@ -176,7 +177,9 @@ static C_stmListList StmListList(T_stmList head, C_stmListList tail) {
 static C_stmListList next(T_stmList prevstms, T_stmList stms, Temp_label done) {
     if (!stms) 
         return next(prevstms, 
-                T_StmList(T_Jump(T_Name(done), Temp_LabelList(done, NULL)), NULL), 
+                T_StmList(
+                    T_Jump(T_Name(done), Temp_LabelList(done, NULL)), 
+                    NULL), 
                 done);
     if (stms->head->kind == T_JUMP || stms->head->kind == T_CJUMP) {
         C_stmListList stmLists;
@@ -184,14 +187,14 @@ static C_stmListList next(T_stmList prevstms, T_stmList stms, Temp_label done) {
         stmLists = mkBlocks(stms->tail, done);
         stms->tail = NULL;
         return stmLists;
-    } 
-    else if (stms->head->kind == T_LABEL) {
+    } else if (stms->head->kind == T_LABEL) {
         Temp_label lab = stms->head->u.LABEL;
         return next(prevstms, 
-                T_StmList(T_Jump(T_Name(lab), Temp_LabelList(lab, NULL)), stms), 
+                T_StmList(
+                    T_Jump(T_Name(lab), Temp_LabelList(lab, NULL)), 
+                    stms), 
                 done);
-    }
-    else {
+    } else {
         prevstms->tail = stms;
         return next(stms, stms->tail, done);
     }
@@ -253,38 +256,36 @@ static void trace(T_stmList list) {
         if (!s->u.JUMP.jumps->tail && target) {
             last->tail = target; /* merge the 2 lists removing JUMP stm */
             trace(target);
-        }
-        else 
+        } else {
             last->tail->tail = getNext(); /* merge and keep JUMP stm */
-    }
-    /* we want false label to follow CJUMP */
-    else if (s->kind == T_CJUMP) {
-        T_stmList true =  (T_stmList)S_look(block_env, s->u.CJUMP.l_true);
-        T_stmList false =  (T_stmList)S_look(block_env, s->u.CJUMP.l_false);
-        if (false) {
-            last->tail->tail = false;
-            trace(false);
         }
-        else if (true) { /* convert so that existing label is a false label */
+    } else if (s->kind == T_CJUMP) {
+        /* we want false label to follow CJUMP */
+        T_stmList l_true =  (T_stmList)S_look(block_env, s->u.CJUMP.l_true);
+        T_stmList l_false =  (T_stmList)S_look(block_env, s->u.CJUMP.l_false);
+        if (l_false) {
+            last->tail->tail = l_false;
+            trace(l_false);
+        } else if (l_true) { /* convert so that existing label is a false label */
             last->tail->head = T_Cjump(T_notRel(s->u.CJUMP.op), 
                                        s->u.CJUMP.left,
                                        s->u.CJUMP.right, 
                                        s->u.CJUMP.l_false, 
                                        s->u.CJUMP.l_true);
-            last->tail->tail = true;
-            trace(true);
-        }
-        else {
-            Temp_label false = Temp_newlabel();
+            last->tail->tail = l_true;
+            trace(l_true);
+        } else {
+            Temp_label l_false = Temp_newlabel();
             last->tail->head = T_Cjump(s->u.CJUMP.op, 
                                        s->u.CJUMP.left,
                                        s->u.CJUMP.right, 
                                        s->u.CJUMP.l_true, 
-                                       false);
-            last->tail->tail = T_StmList(T_Label(false), getNext());
+                                       l_false);
+            last->tail->tail = T_StmList(T_Label(l_false), getNext());
         }
+    } else {
+        assert(0);
     }
-    else assert(0);
 }
 
 /* get the next block from the list of stmLists, using only those that have
@@ -320,7 +321,7 @@ T_stmList C_traceSchedule(struct C_block b) {
     block_env = S_empty();
     global_block = b;
 
-    for (sList=global_block.stmLists; sList; sList=sList->tail) {
+    for (sList = global_block.stmLists; sList; sList = sList->tail) {
         S_enter(block_env, sList->head->head->u.LABEL, sList->head);
     }
 

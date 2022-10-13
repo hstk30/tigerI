@@ -3,6 +3,7 @@
 *.so
 *.dSYM
 *.log
+*.tr
 .DS_Store
 .tags
 
