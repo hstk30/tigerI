@@ -18,3 +18,13 @@ Book 《现代编译原理 c语言实现》 Exercise and Implement
 
 - **flex 2.6.4**
 - **bison 3.8.2**
+
+
+## 笔记、总结、感想
+
+- [词法分析](notes/ch2.md)
+- [语法分析、抽象语法](notes/ch3-4.md)
+- [语义分析](notes/ch5.md)
+- [活动记录、翻译成中间代码](notes/ch6-7.md)
+- [基本块和轨迹](notes/ch8.md)
+

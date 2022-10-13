@@ -26,7 +26,8 @@ static T_stmList getNext(void);
 static expRefList 
 ExpRefList(T_exp *head, expRefList tail) {
     expRefList p = (expRefList)checked_malloc(sizeof *p);
-    p->head=head; p->tail=tail;
+    p->head = head; 
+    p->tail = tail;
     return p;
 }
 

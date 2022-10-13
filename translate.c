@@ -640,8 +640,7 @@ void Tr_printLevel(Tr_level level) {
 
 void Tr_printTree(Tr_exp proc_exp) {
     T_stmList sl = C_linearize(unNx(proc_exp));
-    printStmList(stdout, sl);
-    /* struct C_block b = C_basicBlocks(sl); */
-    /* printStmList(stdout, C_traceSchedule(b)); */
+    struct C_block b = C_basicBlocks(sl);
+    printStmList(stdout, C_traceSchedule(b));
 }
 
