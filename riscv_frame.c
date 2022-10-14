@@ -3,7 +3,42 @@
 #include "util.h"
 
 
+/*                  RISC-V X regs
+ *
+ *  Register    ABI Name    Desc                Saver
+ *  x0          zero        —-                  --        
+ *  x1          ra          Return address      Caller
+ *  x2          sp          Stack pointer       Callee
+ *  x3          gp          Global pointer      —-
+ *  x4          tp          Thread pointer      --
+ *  x5-7        t0-2        Temporaries         Caller
+ *  x8          s0/fp       Saved/frame pointer Callee
+ *  x9          s1          Saved register      Callee
+ *  x10-11      a0-1        Fn args/return val  Caller
+ *  x12-17      a2-7        Fn args             Caller
+ *  x18-27      s2-11       Saved registers     Callee
+ *  x28-31      t3-6        Temporaries         Caller
+ */
+
 const int F_wordSize = 8;
+Temp_map F_tempMap = NULL;
+
+static Temp_tempList returnSink = NULL;
+
+static const int F_XREG_NUM = 32;
+static Temp_temp XREGS[F_XREG_NUM];
+static Temp_tempList ARG_REGS = NULL;
+static Temp_tempList CALLEE_SAVES = NULL;
+static Temp_tempList CALLER_SAVES = NULL;
+static char XREG_NAMES[][5] = {
+    "x0", "ra", "sp", "gp", "tp", 
+    "t0", "t1", "t2",
+    "s0", "s1",
+    "a0", "a1",
+    "a2", "a3", "a4", "a5", "a6", "a7",
+    "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11",
+    "t3", "t4", "t5", "t6"
+};
 
 struct F_frame_ {
     Temp_label name;
@@ -25,15 +60,19 @@ static F_access InReg(Temp_temp reg);
 
 static F_access InFrame(int offset) {
     F_access acc = checked_malloc(sizeof(*acc));
+
     acc->kind = inFrame;
     acc->u.offset = offset;
+
     return acc;
 }
 
 static F_access InReg(Temp_temp reg) {
     F_access acc = checked_malloc(sizeof(*acc));
+
     acc->kind = inReg;
     acc->u.reg = reg;
+
     return acc;
 }
 
@@ -53,8 +92,10 @@ makeAccess(F_frame f, bool escape) {
 
 F_accessList F_AccessList(F_access head, F_accessList tail) {
     F_accessList p = checked_malloc(sizeof(*p));
+
     p->head = head;
     p->tail = tail;
+
     return p;
 }
 
@@ -109,20 +150,87 @@ F_access F_allocLocal(F_frame f, bool escape) {
     return access;
 }
 
-static Temp_temp FP = NULL;
-Temp_temp F_FP() {
-    if (FP == NULL) {
-        FP = Temp_newtemp();
+void F_initMap() {
+    if (F_tempMap != NULL) {
+        return ;
     }
-    return FP;
+
+    int i;
+    F_tempMap = Temp_empty();
+    for (i = 0; i < F_XREG_NUM; i++) {
+        XREGS[i] = Temp_newtemp();
+        Temp_enter(F_tempMap, XREGS[i], String(XREG_NAMES[i]));
+    }
+#ifdef TG_DEBUG
+    Temp_dumpMap(stdout, F_tempMap);
+#endif
 }
 
-static Temp_temp RV = NULL;
+Temp_temp F_FP() {
+    return XREGS[8];
+}
+
+Temp_temp F_SP() {
+    return XREGS[2];
+}
+
+Temp_temp F_ZERO() {
+    return XREGS[0];
+}
+
+Temp_temp F_RA() {
+    return XREGS[1];
+}
+
+/* RV just use one reg */
 Temp_temp F_RV() {
-    if (RV == NULL) {
-        RV = Temp_newtemp();
+    return XREGS[10];
+}
+
+Temp_tempList makeRegList(int *idxs, int len) {
+    if (len == 0) {
+        return NULL;
     }
-    return RV;
+    return Temp_TempList(
+            XREGS[idxs[0]], 
+            makeRegList(idxs + 1, len - 1));
+}
+
+Temp_tempList F_argRegs() {
+    if (ARG_REGS != NULL) {
+        return ARG_REGS;
+    }
+
+    int idxs[8] = {10, 11, 12, 13, 14, 15, 16, 17};
+    ARG_REGS = makeRegList(idxs, 8);
+    return ARG_REGS;
+}
+
+Temp_tempList F_calleeSaves() {
+    if (CALLEE_SAVES != NULL) {
+        return CALLEE_SAVES;
+    }
+
+    int idxs[12] = {
+        8, 9, 
+        18, 19, 20, 21, 22, 23, 24, 25, 26, 27 
+    };
+    CALLEE_SAVES = makeRegList(idxs, 12);
+    return CALLEE_SAVES;
+}
+
+Temp_tempList F_callerSaves() {
+    if (CALLER_SAVES != NULL) {
+        return CALLER_SAVES;
+    }
+
+    int idxs[15] = {
+        5, 6, 7, 
+        10, 11, 12, 13, 14, 15, 16, 17, 
+        28, 29, 30, 31
+    };
+    CALLER_SAVES = makeRegList(idxs, 8);
+    return CALLER_SAVES;
 }
 
 T_exp F_externalCall(string s, T_expList args) {
@@ -167,8 +275,22 @@ F_fragList F_FragList(F_frag head, F_fragList tail) {
 }
 
 T_stm F_procEntryExit1(F_frame frame, T_stm stm) {
-    /* TODO: add function name label here temporarily */
-    return T_Seq(T_Label(frame->name), stm);
+    return stm;
+}
+
+/* TODO: */
+AS_instrList F_procEntryExit2(AS_instrList body) {
+    if (!returnSink) {
+        returnSink = Temp_TempList(NULL, NULL);
+    } 
+
+    return AS_splice(body, AS_InstrList(AS_Oper("", NULL, returnSink, NULL), NULL));
+}
+
+AS_proc F_procEntryExit3(F_frame frame, AS_instrList body) {
+    char buf[100];
+    sprintf(buf, "PROCEDURE %s\n", S_name(frame->name));
+    return AS_Proc(String(buf), body, "END\n");
 }
 
 /* debug info */
