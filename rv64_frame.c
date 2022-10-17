@@ -101,9 +101,8 @@ F_accessList F_AccessList(F_access head, F_accessList tail) {
 
 static F_accessList
 makeFormals(F_frame f, U_boolList formals) {
-    if (formals == NULL) {
+    if (formals == NULL)
         return NULL;
-    }
 
     F_access access;
     if (formals->head) {
@@ -151,9 +150,8 @@ F_access F_allocLocal(F_frame f, bool escape) {
 }
 
 void F_initMap() {
-    if (F_tempMap != NULL) {
+    if (F_tempMap != NULL)
         return ;
-    }
 
     int i;
     F_tempMap = Temp_empty();
@@ -188,18 +186,17 @@ Temp_temp F_RV() {
 }
 
 Temp_tempList makeRegList(int *idxs, int len) {
-    if (len == 0) {
+    if (len == 0)
         return NULL;
-    }
+
     return Temp_TempList(
             XREGS[idxs[0]], 
             makeRegList(idxs + 1, len - 1));
 }
 
 Temp_tempList F_argRegs() {
-    if (ARG_REGS != NULL) {
+    if (ARG_REGS != NULL)
         return ARG_REGS;
-    }
 
     int idxs[8] = {10, 11, 12, 13, 14, 15, 16, 17};
     ARG_REGS = makeRegList(idxs, 8);
@@ -207,9 +204,8 @@ Temp_tempList F_argRegs() {
 }
 
 Temp_tempList F_calleeSaves() {
-    if (CALLEE_SAVES != NULL) {
+    if (CALLEE_SAVES != NULL)
         return CALLEE_SAVES;
-    }
 
     int idxs[12] = {
         8, 9, 
@@ -220,9 +216,8 @@ Temp_tempList F_calleeSaves() {
 }
 
 Temp_tempList F_callerSaves() {
-    if (CALLER_SAVES != NULL) {
+    if (CALLER_SAVES != NULL)
         return CALLER_SAVES;
-    }
 
     int idxs[15] = {
         5, 6, 7, 
@@ -280,9 +275,8 @@ T_stm F_procEntryExit1(F_frame frame, T_stm stm) {
 
 /* TODO: */
 AS_instrList F_procEntryExit2(AS_instrList body) {
-    if (!returnSink) {
+    if (!returnSink)
         returnSink = Temp_TempList(NULL, NULL);
-    } 
 
     return AS_splice(body, AS_InstrList(AS_Oper("", NULL, returnSink, NULL), NULL));
 }
@@ -303,7 +297,6 @@ void F_print(F_frame f) {
         if (iter->head->kind == inFrame) {
             printf("\t\tInFrame(%d)\n", iter->head->u.offset);
         } else {
-
             printf("\t\tInReg\n");
         }
     }
@@ -313,7 +306,6 @@ void F_print(F_frame f) {
         if (iter->head->kind == inFrame) {
             printf("\t\tInFrame(%d)\n", iter->head->u.offset);
         } else {
-
             printf("\t\tInReg\n");
         }
     }

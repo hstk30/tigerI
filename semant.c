@@ -45,9 +45,10 @@ Ty_ty transTy(S_table tenv, A_ty a);
 static Ty_ty
 actual_ty(Ty_ty ty) {
     Ty_ty actual = ty;
-    while (actual->kind == Ty_name) {
+
+    while (actual->kind == Ty_name)
         actual = actual->u.name.ty;
-    }
+
     return actual;
 }
 
@@ -57,9 +58,9 @@ type_equal(Ty_ty t1, Ty_ty t2) {
     Ty_ty a2 = actual_ty(t2);
 
     if ((a1->kind == Ty_record && a2->kind == Ty_nil) ||
-            (a1->kind == Ty_nil && a2->kind == Ty_record)) {
+            (a1->kind == Ty_nil && a2->kind == Ty_record))
         return TRUE;
-    }
+
     return (a1 == a2);
 }
 
@@ -124,9 +125,8 @@ makeArgs(Tr_level level, S_table venv, S_table tenv,
         EM_error(pos, "Function call args inconsistent with declare");
         exit(0);
     }
-    if (args == NULL && formals == NULL) {
+    if (args == NULL && formals == NULL)
         return NULL;
-    }
 
     struct expty arg_expty = transExp(level, venv, tenv, args->head);
     if (!type_equal(arg_expty.ty, formals->head)) {
@@ -178,9 +178,8 @@ makeRecordVals(Tr_level level, S_table venv, S_table tenv,
         EM_error(pos, "Record create length inconsistent with declare");
         exit(0);
     }
-    if (kv == NULL && kt == NULL) {
+    if (kv == NULL && kt == NULL)
         return NULL;
-    }
 
     if (kv->head->name != kt->head->name) {
         EM_error(pos, "Record key name %s inconsistent with declare %s", 
@@ -466,11 +465,10 @@ transFieldVar(Tr_level level, S_table venv, S_table tenv, A_var field_var) {
     int nth = 0;
     for (iter = record_expty.ty->u.record; iter; iter = iter->tail) {
         nth ++;
-        if (iter->head->name == field_var->u.field.sym) {
+        if (iter->head->name == field_var->u.field.sym)
             return expTy(
                     Tr_fieldVar(record_expty.exp, nth), 
                     actual_ty(iter->head->ty));
-        }
     }
 
     EM_error(field_var->pos, "Record not have the key: %s", 
@@ -544,14 +542,14 @@ transVarDec(Tr_level level, S_table venv, S_table tenv, A_dec var_dec) {
  */
 static Ty_tyList
 makeFormalTyList(S_table tenv, A_fieldList params) {
-    if (params == NULL) {
+    if (params == NULL)
         return NULL;
-    }
+
     Ty_ty param_ty = S_look(tenv, params->head->typ);
-    if (param_ty == NULL) {
+    if (param_ty == NULL)
         EM_error(params->head->pos, "Type %s use before declare", 
                 S_name(params->head->typ));
-    }
+
     return Ty_TyList(param_ty, makeFormalTyList(tenv, params->tail));
 }
 
@@ -586,10 +584,9 @@ transFuncDec(Tr_level level, S_table venv, S_table tenv, A_dec func_dec) {
         formal_tys = makeFormalTyList(tenv, f->params);
         if (f->result) {
             result_ty = S_look(tenv, f->result);
-            if (result_ty == NULL) {
+            if (result_ty == NULL)
                 EM_error(f->pos, "Function return type %s use before declare", 
                         S_name(f->result));
-            }
         } else {
             result_ty = Ty_Void();
         }
@@ -617,9 +614,8 @@ transFuncDec(Tr_level level, S_table venv, S_table tenv, A_dec func_dec) {
         }
         body_expty = transExp(new_level, venv, tenv, f->body);
         Tr_procEntryExit(new_level, body_expty.exp);
-        if (!type_equal(body_expty.ty, func_entry->u.fun.results)) {
+        if (!type_equal(body_expty.ty, func_entry->u.fun.results))
             EM_error(func_dec->pos, "Function declared return type dimatch with body");
-        }
 
         LOOP_LABELS.is_nested = temp;
         S_endScope(venv);
@@ -693,12 +689,14 @@ static Ty_fieldList
 makeTyFieldList(S_table tenv, A_fieldList field_list) {
     if (field_list == NULL)
         return NULL;
+
     Ty_ty field_ty = S_look(tenv, field_list->head->typ);
     if (field_ty == NULL) {
         EM_error(field_list->head->pos, "Type %s use before declare", 
                 S_name(field_list->head->typ));
         field_ty = Ty_Int();
     } 
+
     return Ty_FieldList(
         Ty_Field(field_list->head->name, field_ty), 
         makeTyFieldList(tenv, field_list->tail)

@@ -50,9 +50,8 @@ Tr_AccessList(Tr_access head, Tr_accessList tail) {
 
 static Tr_accessList 
 makeSformals(Tr_level level, F_accessList formals) {
-    if (formals == NULL) {
+    if (formals == NULL)
         return NULL;
-    }
 
     return Tr_AccessList(
             Tr_Access(level, formals->head),
@@ -148,9 +147,8 @@ doPatch(patchList t, Temp_label label) {
 
 static patchList 
 joinPatch(patchList first, patchList second) {
-    if (!first) {
+    if (!first)
         return second;
-    }
 
     for (; first->tail; first = first->tail) 
         ;
@@ -456,9 +454,9 @@ Tr_exp Tr_ifExp(Tr_exp test_exp, Tr_exp then_exp, Tr_exp else_exp) {
  */
 static Temp_temp nil = NULL;
 Tr_exp Tr_nilExp() {
-    if (nil == NULL) {
+    if (nil == NULL)
         nil = Temp_newtemp();
-    }
+
     return Tr_Ex(T_Temp(nil));
 }
 
@@ -591,9 +589,8 @@ Tr_exp Tr_assignExp(Tr_exp var_exp, Tr_exp val_exp) {
 }
 
 Tr_exp Tr_seqExp(Tr_expList rev_exps) {
-    if (rev_exps == NULL) {
+    if (rev_exps == NULL)
         return Tr_nop();
-    }
 
     Tr_expList iter;
     /* last exp is the `seq's` return val */
