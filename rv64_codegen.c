@@ -16,6 +16,7 @@ munchMoveStm(T_stm mov) {
     T_exp src = mov->u.MOVE.src;
     char buf[100];
 
+    /* OPT: Use `match` mentioned in book, code will have too many ident */
     if (dst->kind == T_MEM) {
         if (dst->u.MEM->kind == T_BINOP
                 && dst->u.MEM->u.BINOP.op == T_plus
@@ -96,27 +97,104 @@ munchStm(T_stm s) {
         case T_SEQ: {
             munchStm(s->u.SEQ.left);
             munchStm(s->u.SEQ.right);
-            break;
+            return ;
         }
         case T_LABEL: {
             emit(AS_Label(Temp_labelstring(s->u.LABEL), s->u.LABEL));
-            break;
+            return ;
         }
         case T_JUMP: {
-            Temp_temp j0 = munchExp(s->u.JUMP.exp);
-            emit(AS_Oper(String("jal `j0\n"), NULL, NULL, AS_Targets(TLL(j0, NULL))));
-            break;
+            /*
+             * Normally, we only have 
+             * `T_Jump(T_Name(l), Temp_LabelList(l, NULL))`
+             */
+            emit(AS_Oper(String("j `j0\n"), 
+                        NULL, NULL, 
+                        AS_Targets(s->u.JUMP.jumps)));
+            return ;
         }
-        case T_MOVE: return munchMoveStm(s);
         case T_CJUMP: return munchCjumpStm(s);
+        case T_MOVE: return munchMoveStm(s);
+        case T_EXP: {
+            munchExp(s->u.EXP);
+            return ;
+        }
+        default: assert(0);
+    }
+}
 
+static Temp_temp
+munchBinopExp(T_exp e) {
+    char buf[100];
+    T_exp left = e->u.BINOP.left;
+    T_exp right = e->u.BINOP.right;
+    Temp_temp d0 = Temp_newtemp();
+
+    if (e->u.BINOP.op == T_plus) {
+        if (left->kind == T_CONST) {
+            sprintf(buf, "addi `d0, `s0, %d\n", left->u.CONST);
+            emit(AS_Oper(String(buf), 
+                        TTL(d0, NULL), TTL(munchExp(right), NULL), NULL)); 
+        } else if (right->kind == T_CONST) {
+            sprintf(buf, "addi `d0, `s0, %d\n", right->u.CONST);
+            emit(AS_Oper(String(buf), 
+                        TTL(d0, NULL), TTL(munchExp(left), NULL), NULL)); 
+        }
+        return d0;
+    }
+
+    Temp_temp s0 = munchExp(left);
+    Temp_temp s1 = munchExp(right);
+    switch (e->u.BINOP.op) {
+        case T_plus:
+            emit(AS_Oper(String("add `d0, `s0, `s1\n"), 
+                        TTL(d0, NULL), TTL(s0, TTL(s1, NULL)), 
+                        NULL));
+            return d0;
+        case T_minus:
+            emit(AS_Oper(String("sub `d0, `s0, `s1\n"), 
+                        TTL(d0, NULL), TTL(s0, TTL(s1, NULL)), 
+                        NULL));
+            return d0;
+        case T_mul:
+            emit(AS_Oper(String("mul `d0, `s0, `s1\n"), 
+                        TTL(d0, NULL), TTL(s0, TTL(s1, NULL)), 
+                        NULL));
+            return d0;
+        case T_div:
+            emit(AS_Oper(String("div`d0, `s0, `s1\n"), 
+                        TTL(d0, NULL), TTL(s0, TTL(s1, NULL)), 
+                        NULL));
+            return d0;
         default: assert(0);
     }
 
 }
 
-static Temp_temp munchExp(T_exp e) {
+static Temp_temp 
+munchMemExp(T_exp e) {
+    Temp_temp d0 = Temp_newtemp();
+    Temp_temp s0 = munchExp(e->u.MEM);
+    emit(AS_Oper(String("ld `d0, 0(`s0`)\n"), 
+                TTL(d0, NULL), TTL(s0, NULL), 
+                NULL));
 
+    return d0;
+}
+
+static Temp_temp munchExp(T_exp e) {
+    switch (e->kind) {
+        case T_BINOP: return munchBinopExp(e);
+        case T_MEM: return munchMemExp(e);
+        case T_TEMP: break;
+        case T_NAME: break;
+        case T_CONST: break;
+        case T_CALL: break;
+
+        /* After `canon` will not have `ESEQ` */
+        case T_ESEQ:
+        default: assert(0);
+    }
 }
 
 
