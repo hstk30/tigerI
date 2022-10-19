@@ -1,5 +1,10 @@
+#include "assem.h"
 #include "codegen.h"
 #include "frame.h"
+#include "temp.h"
+#include "tree.h"
+#include "util.h"
+#include <stdio.h>
 
 #define TTL(h, t) Temp_TempList(h, t)
 #define TLL(h, t) Temp_LabelList(h, t)
@@ -173,24 +178,62 @@ munchBinopExp(T_exp e) {
 
 static Temp_temp 
 munchMemExp(T_exp e) {
+    char buf[100];
+    Temp_temp s0;
+    T_exp mem = e->u.MEM;
     Temp_temp d0 = Temp_newtemp();
-    Temp_temp s0 = munchExp(e->u.MEM);
-    emit(AS_Oper(String("ld `d0, 0(`s0`)\n"), 
-                TTL(d0, NULL), TTL(s0, NULL), 
-                NULL));
+
+    if (mem->kind == T_BINOP && mem->u.BINOP.op == T_plus) {
+        if (mem->u.BINOP.left->kind == T_CONST) {
+            s0 = munchExp(mem->u.BINOP.right);
+            sprintf(buf, "ld `d0, %d(`s0)\n", mem->u.BINOP.left->u.CONST);
+            emit(AS_Move(String(buf), TTL(d0, NULL), TTL(s0, NULL)));
+        } else if (mem->u.BINOP.right->kind == T_CONST) {
+            s0 = munchExp(mem->u.BINOP.left);
+            sprintf(buf, "ld `d0, %d(`s0)\n", mem->u.BINOP.right->u.CONST);
+            emit(AS_Move(String(buf), TTL(d0, NULL), TTL(s0, NULL)));
+        }
+        return d0;
+    }
+
+    if (mem->kind == T_CONST) {
+        sprintf(buf, "ld `d0, %d(x0)\n", mem->u.CONST);
+        emit(AS_Move(String(buf), TTL(d0, NULL), NULL));
+    } else {
+        s0 = munchExp(e->u.MEM);
+        emit(AS_Move(String("ld `d0, 0(`s0`)\n"), TTL(d0, NULL), TTL(s0, NULL)));
+    }
 
     return d0;
+}
+
+static Temp_temp
+munchCallExp(T_exp e) {
+
 }
 
 static Temp_temp munchExp(T_exp e) {
     switch (e->kind) {
         case T_BINOP: return munchBinopExp(e);
         case T_MEM: return munchMemExp(e);
-        case T_TEMP: break;
-        case T_NAME: break;
-        case T_CONST: break;
-        case T_CALL: break;
-
+        case T_TEMP: return e->u.TEMP;
+        case T_NAME: {
+            /* Need only handle `string` loc, other useage handled inplace */
+            Temp_temp d0 = Temp_newtemp();
+            char buf[100];
+            /* So, load label string address to `d0` and return */
+            sprintf(buf, "la `d0, %s\n", Temp_labelstring(e->u.NAME));
+            emit(AS_Move(String(buf), TTL(d0, NULL), NULL));
+            return d0;
+        }
+        case T_CONST: {
+            Temp_temp d0 = Temp_newtemp();
+            char buf[100];
+            sprintf(buf, "li `d0, %d\n", e->u.CONST);
+            emit(AS_Move(String(buf), TTL(d0, NULL), NULL));
+            return d0;
+        }
+        case T_CALL: return munchCallExp(e);
         /* After `canon` will not have `ESEQ` */
         case T_ESEQ:
         default: assert(0);
