@@ -21,6 +21,7 @@
  */
 
 const int F_wordSize = 8;
+const int ARG_REG_NUM = 8;
 Temp_map F_tempMap = NULL;
 
 static Temp_tempList returnSink = NULL;
@@ -198,8 +199,8 @@ Temp_tempList F_argRegs() {
     if (ARG_REGS != NULL)
         return ARG_REGS;
 
-    int idxs[8] = {10, 11, 12, 13, 14, 15, 16, 17};
-    ARG_REGS = makeRegList(idxs, 8);
+    int idxs[ARG_REG_NUM] = {10, 11, 12, 13, 14, 15, 16, 17};
+    ARG_REGS = makeRegList(idxs, ARG_REG_NUM);
     return ARG_REGS;
 }
 

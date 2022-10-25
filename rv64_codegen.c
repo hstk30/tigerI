@@ -197,8 +197,8 @@ munchMemExp(T_exp e) {
     }
 
     if (mem->kind == T_CONST) {
-        sprintf(buf, "ld `d0, %d(x0)\n", mem->u.CONST);
-        emit(AS_Move(String(buf), TTL(d0, NULL), NULL));
+        sprintf(buf, "ld `d0, %d(`s0)\n", mem->u.CONST);
+        emit(AS_Move(String(buf), TTL(d0, NULL), TTL(F_ZERO(), NULL)));
     } else {
         s0 = munchExp(e->u.MEM);
         emit(AS_Move(String("ld `d0, 0(`s0`)\n"), TTL(d0, NULL), TTL(s0, NULL)));
@@ -207,9 +207,32 @@ munchMemExp(T_exp e) {
     return d0;
 }
 
+static Temp_tempList
+munchArgs(int i, T_expList args, Temp_tempList arg_regs) {
+    /* TODO: how to handle `escape` var */
+    Temp_temp s0 = munchExp(args->head);
+    if (i < ARG_REG_NUM) {
+        emit(AS_Move(String("mv `d0, `s0"), TTL(arg_regs->head, NULL), TTL(s0, NULL)));
+        return Temp_TempList(arg_regs->head, 
+                munchArgs(i + 1, args->tail, arg_regs->tail));
+    } else {
+        char buf[100];
+        sprintf(buf, "sd `s0, %d(`d0)", F_wordSize * (i - ARG_REG_NUM));
+        emit(AS_Move(String(buf), TTL(F_SP(), NULL), TTL(s0, NULL)));
+        return Temp_TempList()
+    }
+
+
+}
+
 static Temp_temp
 munchCallExp(T_exp e) {
-
+    char buf[100];
+    Temp_tempList l = munchArgs(0, e->u.CALL.args, F_argRegs());
+    
+    sprintf(buf, "call `s0, %s\n", Temp_labelstring(e->u.CALL.fun->u.NAME));
+    emit(AS_Oper(String(buf), F_callerSaves(), l, NULL));
+    return F_RV();
 }
 
 static Temp_temp munchExp(T_exp e) {

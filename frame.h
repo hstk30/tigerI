@@ -13,6 +13,7 @@
 
 /* set in xxframe.c */
 extern const int F_wordSize;
+extern const int ARG_REG_NUM;
 extern Temp_map F_tempMap;
 
 typedef struct F_frame_ *F_frame;

@@ -8,7 +8,7 @@
  */
 
 /*
- * 一个散列栈，即记录了进入的先后顺序，也支持散列查找
+ * A hash stack
  */
 
 #ifndef TABLE_H_
