@@ -466,6 +466,7 @@ Tr_exp Tr_intExp(int n) {
 
 Tr_exp Tr_stringExp(string str) {
     Temp_label l = Temp_newlabel();
+
     F_fragList p = F_FragList(F_StringFrag(l, str), NULL);
     STR_FRAG_TAIL->tail = p;
     STR_FRAG_TAIL = p;
@@ -608,10 +609,6 @@ void Tr_procEntryExit(Tr_level level, Tr_exp proc_body) {
     T_stm body_stm = F_procEntryExit1(level->frame, with_ret);
     F_frag f_proc = F_ProcFrag(body_stm, level->frame);
 
-#ifdef TG_DEBUG
-    Tr_printTree(Tr_Nx(body_stm));
-#endif
-
     F_fragList p = F_FragList(f_proc, NULL);
     PROC_FRAG_TAIL->tail = p;
     PROC_FRAG_TAIL = p;
@@ -627,17 +624,11 @@ void Tr_init() {
 
 F_fragList Tr_getResult(void) {
     PROC_FRAG_TAIL->tail = STR_FRAG_HEAD;
-    return PROC_FRAG_HEAD;
+    return PROC_FRAG_HEAD->tail;
 }
 
 /* debug function */
 void Tr_printLevel(Tr_level level) {
     F_print(level->frame);
-}
-
-void Tr_printTree(Tr_exp proc_exp) {
-    T_stmList sl = C_linearize(unNx(proc_exp));
-    struct C_block b = C_basicBlocks(sl);
-    printStmList(stdout, C_traceSchedule(b));
 }
 

@@ -42,7 +42,7 @@ Temp_temp Temp_newtemp(void) {
     p->num = temps++;
     { 
         char r[16];
-        sprintf(r, "%d", p->num);
+        sprintf(r, "t%d", p->num);
         Temp_enter(Temp_name(), p, String(r));
     }
     return p;

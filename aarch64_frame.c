@@ -158,9 +158,6 @@ void F_initMap() {
         XREGS[i] = Temp_newtemp();
         Temp_enter(F_tempMap, XREGS[i], String(XREG_NAMES[i]));
     }
-#ifdef TG_DEBUG
-    Temp_dumpMap(stdout, F_tempMap);
-#endif
 }
 
 Temp_temp F_FP() {

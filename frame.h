@@ -73,8 +73,6 @@ T_stm        F_procEntryExit1(F_frame frame, T_stm stm);
 AS_instrList F_procEntryExit2(AS_instrList body);
 AS_proc      F_procEntryExit3(F_frame frame, AS_instrList body);
 
-AS_instrList F_codegen(F_frame f, T_stmList stmList);
-
 
 void F_print(F_frame);
 

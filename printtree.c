@@ -97,7 +97,7 @@ static void pr_tree_exp(FILE *out, T_exp exp, int d) {
             break;
         case T_TEMP:
             indent(out, d); 
-            fprintf(out, "TEMP t%s", Temp_look(Temp_name(), exp->u.TEMP));
+            fprintf(out, "TEMP %s", Temp_look(Temp_name(), exp->u.TEMP));
             break;
         case T_ESEQ:
             indent(out, d); 
