@@ -13,6 +13,7 @@
 #include "temp.h"
 #include "table.h"
 
+
 struct Temp_temp_ {
     int num;
 };
@@ -41,7 +42,7 @@ Temp_temp Temp_newtemp(void) {
     p->num = temps++;
     { 
         char r[16];
-        sprintf(r, "%d", p->num);
+        sprintf(r, "t%d", p->num);
         Temp_enter(Temp_name(), p, String(r));
     }
     return p;
@@ -52,9 +53,7 @@ struct Temp_map_ {
     Temp_map under;
 };
 
-/*
- * 全局单例
- */
+/* A global `Temp_map<Temp_temp, string>` */
 Temp_map Temp_name(void) {
     static Temp_map m = NULL;
     if (!m) 
@@ -64,8 +63,10 @@ Temp_map Temp_name(void) {
 
 Temp_map newMap(TAB_table tab, Temp_map under) {
     Temp_map m = checked_malloc(sizeof(*m));
+
     m->tab = tab;
     m->under = under;
+
     return m;
 }
 
@@ -74,7 +75,7 @@ Temp_map Temp_empty(void) {
 }
 
 Temp_map Temp_layerMap(Temp_map over, Temp_map under) {
-    if (over==NULL)
+    if (over == NULL)
         return under;
     else 
         return newMap(over->tab, Temp_layerMap(over->under, under));
@@ -82,7 +83,7 @@ Temp_map Temp_layerMap(Temp_map over, Temp_map under) {
 
 void Temp_enter(Temp_map m, Temp_temp t, string s) {
     assert(m && m->tab);
-    TAB_enter(m->tab,t,s);
+    TAB_enter(m->tab, t, s);
 }
 
 string Temp_look(Temp_map m, Temp_temp t) {
@@ -98,16 +99,20 @@ string Temp_look(Temp_map m, Temp_temp t) {
 }
 
 Temp_tempList Temp_TempList(Temp_temp h, Temp_tempList t) {
-    Temp_tempList p = (Temp_tempList)checked_malloc(sizeof (*p));
+    Temp_tempList p = (Temp_tempList)checked_malloc(sizeof(*p));
+
     p->head = h; 
     p->tail = t;
+
     return p;
 }
 
 Temp_labelList Temp_LabelList(Temp_label h, Temp_labelList t) {
-    Temp_labelList p = (Temp_labelList)checked_malloc(sizeof (*p));
+    Temp_labelList p = (Temp_labelList)checked_malloc(sizeof(*p));
+
     p->head = h; 
     p->tail = t;
+
     return p;
 }
 

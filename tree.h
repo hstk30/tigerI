@@ -9,7 +9,10 @@
 typedef struct T_stm_ *T_stm;
 typedef struct T_exp_ *T_exp;
 typedef struct T_expList_ *T_expList;
-struct T_expList_ {T_exp head; T_expList tail;};
+struct T_expList_ {
+    T_exp head; 
+    T_expList tail;
+};
 typedef struct T_stmList_ *T_stmList;
 struct T_stmList_ {T_stm head; T_stmList tail;};
 

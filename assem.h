@@ -8,6 +8,10 @@
 
 #include <stdio.h>
 
+#include "temp.h"
+#include "util.h"
+
+
 typedef struct {
     Temp_labelList labels;
 } *AS_targets;
@@ -55,7 +59,6 @@ struct AS_proc_ {
     AS_instrList body;
     string epilog;
 };
-
 AS_proc AS_Proc(string p, AS_instrList b, string e);
 
 #endif

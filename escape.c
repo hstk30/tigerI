@@ -53,9 +53,9 @@ static void traverseExp(S_table eenv, int depth, A_exp e) {
         case A_ifExp: {
             traverseExp(eenv, depth, e->u.iff.test);
             traverseExp(eenv, depth, e->u.iff.then);
-            if (e->u.iff.elsee) {
+            if (e->u.iff.elsee)
                 traverseExp(eenv, depth, e->u.iff.elsee);
-            }
+
             return ;
         }
         case A_whileExp: {
@@ -121,9 +121,9 @@ static void traverseVar(S_table eenv, int depth, A_var v) {
         case A_simpleVar: {
             E_enventry x = S_look(eenv, v->u.simple);
             /* `semant` will handle `x == NULL` error */
-            if (x && x->u.escape.depth < depth) {
+            if (x && x->u.escape.depth < depth)
                 *(x->u.escape.escape) = TRUE;
-            }
+
             return ;
         }
         case A_fieldVar: {

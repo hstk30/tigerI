@@ -13,6 +13,8 @@
 
 /* set in xxframe.c */
 extern const int F_wordSize;
+extern const int ARG_REG_NUM;
+extern Temp_map F_tempMap;
 
 typedef struct F_frame_ *F_frame;
 typedef struct F_access_ *F_access;
@@ -30,11 +32,8 @@ F_access F_allocLocal(F_frame f, bool escape);
 
 string F_getlabel(F_frame frame);   /* ?? */
 
-/*** translate interface ***/
 T_exp F_externalCall(string s, T_expList args);
 T_exp F_Exp(F_access access, T_exp frame_ptr);
-
-/*** end ***/
 
 typedef struct F_frag_ *F_frag;
 struct F_frag_ {
@@ -59,20 +58,20 @@ struct F_fragList_ {
 };
 F_fragList F_FragList(F_frag head, F_fragList tail);
 
-Temp_map F_tempMap();
 Temp_tempList F_registers(void);
-
+void F_initMap();
 Temp_temp F_FP();
 Temp_temp F_SP();
 Temp_temp F_ZERO();
 Temp_temp F_RA();
 Temp_temp F_RV();
+Temp_tempList F_argRegs();
+Temp_tempList F_calleeSaves();
+Temp_tempList F_callerSaves();
 
 T_stm        F_procEntryExit1(F_frame frame, T_stm stm);
 AS_instrList F_procEntryExit2(AS_instrList body);
 AS_proc      F_procEntryExit3(F_frame frame, AS_instrList body);
-
-AS_instrList F_codegen(F_frame f, T_stmList stmList);
 
 
 void F_print(F_frame);
