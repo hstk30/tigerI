@@ -7,6 +7,7 @@
 *.tr
 .DS_Store
 .tags
+.swp
 
 tokens.h
 
@@ -21,4 +22,5 @@ asttest
 typetest
 esctest
 semanttest
+codegentest
 
