@@ -7,6 +7,7 @@
 *.tr
 .DS_Store
 .tags
+.swp
 
 tokens.h
 
