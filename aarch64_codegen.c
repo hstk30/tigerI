@@ -52,8 +52,13 @@ munchMoveStm(T_stm mov) {
             emit(AS_Move(String("str `s0, [`d0]"), TTL(d0, NULL), TTL(s0, NULL)));
         }
     } else if (dst->kind == T_TEMP) {
+        if (src->kind == T_CONST) {
+            sprintf(buf, "mov `d0, #%d", src->u.CONST);
+            emit(AS_Move(String(buf), TTL(dst->u.TEMP, NULL), NULL));
+        } else {
             Temp_temp s0 = munchExp(src);
             emit(AS_Move(String("mov `d0, `s0"), TTL(dst->u.TEMP, NULL), TTL(s0, NULL)));
+        }
     } else {
         assert(0);
     }

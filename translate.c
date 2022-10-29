@@ -17,6 +17,9 @@ static F_fragList PROC_FRAG_TAIL = NULL;
 static F_fragList STR_FRAG_HEAD = NULL;
 static F_fragList STR_FRAG_TAIL = NULL;
 
+static void Tr_insert_proc(F_frag proc);
+static void Tr_insert_str(F_frag str);
+
 /*** stack frame or activation record rel ***/
 struct Tr_level_ {
     Tr_level parent;
@@ -467,9 +470,8 @@ Tr_exp Tr_intExp(int n) {
 Tr_exp Tr_stringExp(string str) {
     Temp_label l = Temp_newlabel();
 
-    F_fragList p = F_FragList(F_StringFrag(l, str), NULL);
-    STR_FRAG_TAIL->tail = p;
-    STR_FRAG_TAIL = p;
+    F_frag f_str = F_StringFrag(l, str);
+    Tr_insert_str(f_str);
 
     return Tr_Ex(T_Name(l));
 }
@@ -609,22 +611,34 @@ void Tr_procEntryExit(Tr_level level, Tr_exp proc_body) {
     T_stm body_stm = F_procEntryExit1(level->frame, with_ret);
     F_frag f_proc = F_ProcFrag(body_stm, level->frame);
 
-    F_fragList p = F_FragList(f_proc, NULL);
-    PROC_FRAG_TAIL->tail = p;
-    PROC_FRAG_TAIL = p;
+    Tr_insert_proc(f_proc);
 }
 
-void Tr_init() {
-    PROC_FRAG_HEAD = F_FragList(NULL, NULL);
-    PROC_FRAG_TAIL = PROC_FRAG_HEAD;
+static void 
+Tr_insert_proc(F_frag proc) {
+    if (PROC_FRAG_TAIL != NULL) {
+        PROC_FRAG_TAIL->tail = F_FragList(proc, NULL);
+        PROC_FRAG_TAIL = PROC_FRAG_TAIL->tail;
+    } else {
+        PROC_FRAG_HEAD= F_FragList(proc, NULL);
+        PROC_FRAG_TAIL = PROC_FRAG_HEAD;
+    }
+}
 
-    STR_FRAG_HEAD = F_FragList(NULL, NULL);
-    STR_FRAG_TAIL = STR_FRAG_HEAD;
+static void 
+Tr_insert_str(F_frag str) {
+    if (STR_FRAG_TAIL != NULL) {
+        STR_FRAG_TAIL->tail = F_FragList(str, NULL);
+        STR_FRAG_TAIL = STR_FRAG_TAIL->tail;
+    } else {
+        STR_FRAG_HEAD= F_FragList(str, NULL);
+        STR_FRAG_TAIL = STR_FRAG_HEAD;
+    }
 }
 
 F_fragList Tr_getResult(void) {
     PROC_FRAG_TAIL->tail = STR_FRAG_HEAD;
-    return PROC_FRAG_HEAD->tail;
+    return PROC_FRAG_HEAD;
 }
 
 /* debug function */

@@ -36,7 +36,7 @@ gen_as_strs(FILE *out, F_fragList str_frags) {
 
     for (iter = str_frags; iter; iter = iter->tail) {
         fprintf(out, "%s:\n", Temp_labelstring(iter->head->u.stringg.label));
-        fprintf(out, "\t.asciz %s\n\n", iter->head->u.stringg.str);
+        fprintf(out, "\t.asciz \"%s\"\n\n", iter->head->u.stringg.str);
     }
 }
 
@@ -46,12 +46,12 @@ int main(int argc, char **argv) {
         exit(1); 
     }
 
+    F_initMap();
     A_exp absyn_tree_root = parse(argv[1]);
     if (absyn_tree_root) {
         Esc_findEscape(absyn_tree_root);
         F_fragList procs = SEM_transProg(absyn_tree_root);
         F_fragList iter;
-        F_initMap();
         for (iter = procs; iter; iter = iter->tail) {
             if (iter->head->kind == F_procFrag) {
                 gen_as_proc(stdout, iter->head);

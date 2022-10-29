@@ -775,7 +775,6 @@ Ty_ty transTy(S_table tenv, A_ty t) {
 
 F_fragList SEM_transProg(A_exp exp) {
     S_table venv = E_base_venv(), tenv = E_base_tenv();
-    Tr_init();
     Tr_level outermost = Tr_outermost();
     Tr_level tiger_main = Tr_newLevel( outermost, Temp_namedlabel("tiger_main"), NULL);
     struct expty program = transExp(tiger_main, venv, tenv, exp);

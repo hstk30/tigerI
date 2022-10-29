@@ -152,32 +152,45 @@ void F_initMap() {
     if (F_tempMap != NULL)
         return ;
 
-    int i;
     F_tempMap = Temp_empty();
+    int i;
     for (i = 0; i < F_XREG_NUM; i++) {
         XREGS[i] = Temp_newtemp();
         Temp_enter(F_tempMap, XREGS[i], String(XREG_NAMES[i]));
     }
+#ifdef TG_DEBUG
+    Temp_dumpMap(stdout, F_tempMap);
+#endif
 }
 
 Temp_temp F_FP() {
+    if (F_tempMap == NULL)
+        F_initMap();
     return XREGS[29];
 }
 
 Temp_temp F_SP() {
+    if (F_tempMap == NULL)
+        F_initMap();
     return XREGS[31];
 }
 
 Temp_temp F_ZERO() {
+    if (F_tempMap == NULL)
+        F_initMap();
     return XREGS[32];
 }
 
 Temp_temp F_RA() {
+    if (F_tempMap == NULL)
+        F_initMap();
     return XREGS[30];
 }
 
 /* RV just use one reg */
 Temp_temp F_RV() {
+    if (F_tempMap == NULL)
+        F_initMap();
     return XREGS[0];
 }
 
@@ -227,7 +240,7 @@ T_exp F_Exp(F_access access, T_exp frame_ptr) {
     if (access->kind == inFrame) {
         return T_Mem(T_Binop(T_plus, frame_ptr, T_Const(access->u.offset)));
     } else {
-        return T_Mem(T_Temp(access->u.reg));
+        return T_Temp(access->u.reg);
     }
 }
 
