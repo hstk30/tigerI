@@ -1,9 +1,3 @@
-/*
- * temp.h 
- * 临时变量和标号
- *
- */
-
 #ifndef TEMP_H_
 #define TEMP_H_
 

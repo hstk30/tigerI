@@ -1,5 +1,5 @@
-#ifndef ENV_H__
-#define ENV_H__
+#ifndef ENV_H_
+#define ENV_H_
 
 #include "util.h"
 #include "symbol.h"
