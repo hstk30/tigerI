@@ -9,7 +9,8 @@
 #include "escape.h"
 #include "semant.h"
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv) 
+{
     if (argc != 2) {
         fprintf(stderr,"usage: a.out filename\n"); 
         exit(1); 

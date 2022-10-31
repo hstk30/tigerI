@@ -3,7 +3,8 @@
 #include <stdlib.h>
 
 
-int *initArray(int size, int init) {
+int *initArray(int size, int init) 
+{
     int i;
     int *a = (int *)malloc(size * sizeof(int));
     for (i = 0; i < size; i++) 
@@ -11,7 +12,8 @@ int *initArray(int size, int init) {
     return a;
 }
 
-int *allocRecord(int size) {
+int *allocRecord(int size) 
+{
     int i;
     int *p, *a;
     p = a = (int *)malloc(size);
@@ -20,12 +22,14 @@ int *allocRecord(int size) {
     return a;
 }
 
-struct string {
+struct string 
+{
     int length; 
     unsigned char chars[1]; /* flexible array */
 };
 
-int stringEqual(struct string *s, struct string *t) {
+int stringEqual(struct string *s, struct string *t) 
+{
     int i;
     if (s ==t ) 
         return 1;
@@ -35,23 +39,27 @@ int stringEqual(struct string *s, struct string *t) {
         if (s->chars[i] != t->chars[i]) 
             return 0;
     return 1;
+
 }
 
-void print(struct string *s) {
+void print(struct string *s) 
+{
     int i; 
     unsigned char *p = s->chars;
     for(i=0; i< s->length; i++, p++) 
         putchar(*p);    /* libc */
 }
 
-void flush() {
+void flush() 
+{
     fflush(stdout); /* libc */
 }
 
 struct string consts[256];
 struct string empty = {0, ""};
 
-int main() { 
+int main() 
+{ 
     int i;
     for(i = 0; i < 256; i++) {
         consts[i].length = 1;
@@ -60,14 +68,16 @@ int main() {
     return tigermain(0 /* static link */);
 }
 
-int ord(struct string *s) {
+int ord(struct string *s) 
+{
     if (s->length == 0) 
         return -1;
     else 
         return s->chars[0];
 }
 
-struct string *chr(int i) {
+struct string *chr(int i) 
+{
     if (i < 0 || i >= 256) {
         printf("chr(%d) out of range\n",i); 
         exit(1);
@@ -75,11 +85,13 @@ struct string *chr(int i) {
     return consts + i;
 }
 
-int size(struct string *s) { 
+int size(struct string *s) 
+{ 
     return s->length;
 }
 
-struct string *substring(struct string *s, int first, int n) {
+struct string *substring(struct string *s, int first, int n) 
+{
     if (first < 0 || first + n > s->length) {
         printf("substring([%d],%d,%d) out of range\n", s->length, first, n);
         exit(1);
@@ -94,7 +106,8 @@ struct string *substring(struct string *s, int first, int n) {
     return t;
 }
 
-struct string *concat(struct string *a, struct string *b) {
+struct string *concat(struct string *a, struct string *b) 
+{
     if (a->length == 0) 
         return b;
     else if (b->length == 0)
@@ -111,13 +124,15 @@ struct string *concat(struct string *a, struct string *b) {
     }
 }
 
-int not(int i) { 
+int not(int i) 
+{ 
     return !i;
 }
 
 #undef getchar
 
-struct string *getchar() {
+struct string *getchar() 
+{
     int i = getc(stdin);
     if (i == EOF) 
         return &empty;

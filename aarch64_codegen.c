@@ -16,7 +16,8 @@ static Temp_temp munchExp(T_exp e);
 static void emit(AS_instr inst);
 
 static void
-munchMoveStm(T_stm mov) {
+munchMoveStm(T_stm mov) 
+{
     T_exp dst = mov->u.MOVE.dst;
     T_exp src = mov->u.MOVE.src;
     char buf[100];
@@ -67,7 +68,8 @@ munchMoveStm(T_stm mov) {
 }
 
 static void
-munchCjumpStm(T_stm cjump) {
+munchCjumpStm(T_stm cjump) 
+{
     Temp_temp s0 = munchExp(cjump->u.CJUMP.left);
     Temp_temp s1 = munchExp(cjump->u.CJUMP.right);
 
@@ -105,7 +107,8 @@ munchCjumpStm(T_stm cjump) {
 }
 
 static void 
-munchStm(T_stm s) {
+munchStm(T_stm s) 
+{
     switch (s->kind) {
         case T_SEQ: {
             munchStm(s->u.SEQ.left);
@@ -137,7 +140,8 @@ munchStm(T_stm s) {
 }
 
 static Temp_temp
-munchBinopExp(T_exp e) {
+munchBinopExp(T_exp e) 
+{
     char buf[100];
     T_exp left = e->u.BINOP.left;
     T_exp right = e->u.BINOP.right;
@@ -185,7 +189,8 @@ munchBinopExp(T_exp e) {
 }
 
 static Temp_temp 
-munchMemExp(T_exp e) {
+munchMemExp(T_exp e) 
+{
     char buf[100];
     Temp_temp s0;
     T_exp mem = e->u.MEM;
@@ -216,7 +221,8 @@ munchMemExp(T_exp e) {
 }
 
 static Temp_tempList
-munchArgs(int i, T_expList args, Temp_tempList arg_regs) {
+munchArgs(int i, T_expList args, Temp_tempList arg_regs) 
+{
     /* TODO: how to handle `escape` var */
     if (args == NULL)
         return NULL;
@@ -238,7 +244,8 @@ munchArgs(int i, T_expList args, Temp_tempList arg_regs) {
 }
 
 static Temp_temp
-munchCallExp(T_exp e) {
+munchCallExp(T_exp e) 
+{
     char buf[100];
     Temp_tempList l = munchArgs(0, e->u.CALL.args, F_argRegs());
     
@@ -247,7 +254,8 @@ munchCallExp(T_exp e) {
     return F_RV();
 }
 
-static Temp_temp munchExp(T_exp e) {
+static Temp_temp munchExp(T_exp e) 
+{
     switch (e->kind) {
         case T_BINOP: return munchBinopExp(e);
         case T_MEM: return munchMemExp(e);
@@ -278,7 +286,8 @@ static Temp_temp munchExp(T_exp e) {
 }
 
 
-static void emit(AS_instr inst) {
+static void emit(AS_instr inst) 
+{
     if (last != NULL) {
         last->tail = AS_InstrList(inst, NULL);
         last = last->tail;
@@ -289,7 +298,8 @@ static void emit(AS_instr inst) {
 }
 
 
-AS_instrList F_codegen(F_frame f, T_stmList stmLists) {
+AS_instrList F_codegen(F_frame f, T_stmList stmLists) 
+{
     AS_instrList list;
     T_stmList sl;
 

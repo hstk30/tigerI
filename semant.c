@@ -43,7 +43,8 @@ Ty_ty transTy(S_table tenv, A_ty a);
  * cause `type a = b` is the same type, so just compare type reference
  */ 
 static Ty_ty
-actual_ty(Ty_ty ty) {
+actual_ty(Ty_ty ty) 
+{
     Ty_ty actual = ty;
 
     while (actual->kind == Ty_name)
@@ -53,7 +54,8 @@ actual_ty(Ty_ty ty) {
 }
 
 static bool
-type_equal(Ty_ty t1, Ty_ty t2) {
+type_equal(Ty_ty t1, Ty_ty t2) 
+{
     Ty_ty a1 = actual_ty(t1);
     Ty_ty a2 = actual_ty(t2);
 
@@ -65,7 +67,8 @@ type_equal(Ty_ty t1, Ty_ty t2) {
 }
 
 static struct expty 
-transOpExp(Tr_level level, S_table venv, S_table tenv, A_exp opexp) {
+transOpExp(Tr_level level, S_table venv, S_table tenv, A_exp opexp) 
+{
     A_oper oper = opexp->u.op.oper;
     struct expty left_expty = transExp(level, venv, tenv, opexp->u.op.left);
     struct expty right_expty = transExp(level, venv, tenv, opexp->u.op.right);
@@ -119,7 +122,8 @@ transOpExp(Tr_level level, S_table venv, S_table tenv, A_exp opexp) {
 
 static Tr_expList
 makeArgs(Tr_level level, S_table venv, S_table tenv,  
-        A_expList args, Ty_tyList formals, int pos) {
+        A_expList args, Ty_tyList formals, int pos) 
+{
     if ((args == NULL && formals != NULL) ||
             (args != NULL && formals == NULL)) {
         EM_error(pos, "Function call args inconsistent with declare");
@@ -143,7 +147,8 @@ makeArgs(Tr_level level, S_table venv, S_table tenv,
  * 2. call return value
  */
 static struct expty
-transCallExp(Tr_level level, S_table venv, S_table tenv, A_exp call_exp) {
+transCallExp(Tr_level level, S_table venv, S_table tenv, A_exp call_exp) 
+{
     E_enventry func = S_look(venv, call_exp->u.call.func);
 
     if (func == NULL) {
@@ -172,7 +177,8 @@ transCallExp(Tr_level level, S_table venv, S_table tenv, A_exp call_exp) {
  */
 static Tr_expList 
 makeRecordVals(Tr_level level, S_table venv, S_table tenv, 
-        A_efieldList kv, Ty_fieldList kt, int pos, int *nvals) {
+        A_efieldList kv, Ty_fieldList kt, int pos, int *nvals) 
+{
     if ((kv == NULL && kt != NULL) ||
             (kv != NULL && kt == NULL)) {
         EM_error(pos, "Record create length inconsistent with declare");
@@ -200,7 +206,8 @@ makeRecordVals(Tr_level level, S_table venv, S_table tenv,
 }
 
 static struct expty
-transRecodeExp(Tr_level level, S_table venv, S_table tenv, A_exp record_exp) {
+transRecodeExp(Tr_level level, S_table venv, S_table tenv, A_exp record_exp) 
+{
     Ty_ty deced_ty = S_look(tenv, record_exp->u.record.typ), record_ty;
     int nvals = 0;
 
@@ -227,7 +234,8 @@ transRecodeExp(Tr_level level, S_table venv, S_table tenv, A_exp record_exp) {
  * 2. check `size` is `int` and `init` type is right
  */
 static struct expty
-transArrayExp(Tr_level level, S_table venv, S_table tenv, A_exp array_exp) {
+transArrayExp(Tr_level level, S_table venv, S_table tenv, A_exp array_exp) 
+{
     Ty_ty deced_ty = S_look(tenv, array_exp->u.array.typ), array_ty;
 
     if (deced_ty == NULL) {
@@ -264,7 +272,8 @@ transArrayExp(Tr_level level, S_table venv, S_table tenv, A_exp array_exp) {
  * `()` `(a <> nul)` `(s1; s2; s3)` all be `seqexp`
  */
 static struct expty
-transSeqExp(Tr_level level, S_table venv, S_table tenv, A_exp seq_exp) {
+transSeqExp(Tr_level level, S_table venv, S_table tenv, A_exp seq_exp) 
+{
     A_expList el;
     struct expty last_expty;
     Tr_expList seq_exps = NULL;
@@ -283,7 +292,8 @@ transSeqExp(Tr_level level, S_table venv, S_table tenv, A_exp seq_exp) {
 }
 
 static struct expty
-transAssignExp(Tr_level level, S_table venv, S_table tenv, A_exp assign_exp) {
+transAssignExp(Tr_level level, S_table venv, S_table tenv, A_exp assign_exp) 
+{
     struct expty var_expty = transVar(level, venv, tenv, assign_exp->u.assign.var); 
     struct expty val_expty = transExp(level, venv, tenv, assign_exp->u.assign.exp); 
 
@@ -303,7 +313,8 @@ transAssignExp(Tr_level level, S_table venv, S_table tenv, A_exp assign_exp) {
 }
 
 static struct expty
-transIfExp(Tr_level level, S_table venv, S_table tenv, A_exp if_exp) {
+transIfExp(Tr_level level, S_table venv, S_table tenv, A_exp if_exp) 
+{
     struct expty test_expty = transExp(level, venv, tenv, if_exp->u.iff.test);
     if (test_expty.ty->kind != Ty_int) {
         EM_error(if_exp->pos, "If test clause must be int");
@@ -334,7 +345,8 @@ transIfExp(Tr_level level, S_table venv, S_table tenv, A_exp if_exp) {
 }
 
 static struct expty
-transWhileExp(Tr_level level, S_table venv, S_table tenv, A_exp while_exp) {
+transWhileExp(Tr_level level, S_table venv, S_table tenv, A_exp while_exp) 
+{
     struct expty test_expty = transExp(level, venv, tenv, while_exp->u.whilee.test);
     if (test_expty.ty->kind != Ty_int) {
         EM_error(while_exp->pos, "While test clause must be int");
@@ -361,7 +373,8 @@ transWhileExp(Tr_level level, S_table venv, S_table tenv, A_exp while_exp) {
 }
 
 static struct expty
-transForExp(Tr_level level, S_table venv, S_table tenv, A_exp for_exp) {
+transForExp(Tr_level level, S_table venv, S_table tenv, A_exp for_exp) 
+{
     struct expty lo_expty = transExp(level, venv, tenv, for_exp->u.forr.lo);
     struct expty hi_expty = transExp(level, venv, tenv, for_exp->u.forr.hi);
     
@@ -397,7 +410,8 @@ transForExp(Tr_level level, S_table venv, S_table tenv, A_exp for_exp) {
 }
 
 static struct expty
-transBreakExp(Tr_level level, S_table venv, S_table tenv, A_exp brk_exp) {
+transBreakExp(Tr_level level, S_table venv, S_table tenv, A_exp brk_exp) 
+{
     if (!LOOP_LABELS.is_nested) {
         EM_error(brk_exp->pos, "Break clause outside loop");
         return expTy(Tr_nop(), Ty_Void());
@@ -414,7 +428,8 @@ transBreakExp(Tr_level level, S_table venv, S_table tenv, A_exp brk_exp) {
  * 2. trans body
  */
 static struct expty
-transLetExp(Tr_level level, S_table venv, S_table tenv, A_exp let_exp) {
+transLetExp(Tr_level level, S_table venv, S_table tenv, A_exp let_exp) 
+{
     struct expty body_expty;
     A_decList dl;
     Tr_exp dec_exp;
@@ -435,7 +450,8 @@ transLetExp(Tr_level level, S_table venv, S_table tenv, A_exp let_exp) {
 }
 
 static struct expty
-transSimpleVar(Tr_level level, S_table venv, S_table tenv, A_var simple_var) {
+transSimpleVar(Tr_level level, S_table venv, S_table tenv, A_var simple_var) 
+{
     E_enventry x = S_look(venv, simple_var->u.simple);
 
     if (x && x->kind == E_varEntry) {
@@ -453,7 +469,8 @@ transSimpleVar(Tr_level level, S_table venv, S_table tenv, A_var simple_var) {
  * var type has the `sym` field?
  */
 static struct expty
-transFieldVar(Tr_level level, S_table venv, S_table tenv, A_var field_var) {
+transFieldVar(Tr_level level, S_table venv, S_table tenv, A_var field_var) 
+{
     struct expty record_expty = transVar(level, venv, tenv, field_var->u.field.var);
 
     if (record_expty.ty->kind != Ty_record) {
@@ -480,7 +497,8 @@ transFieldVar(Tr_level level, S_table venv, S_table tenv, A_var field_var) {
  * index `exp` must be `int`
  */
 static struct expty
-transSubscriptVar(Tr_level level, S_table venv, S_table tenv, A_var subscript_var) {
+transSubscriptVar(Tr_level level, S_table venv, S_table tenv, A_var subscript_var) 
+{
     struct expty array_expty = transVar(level, venv, tenv, 
                                         subscript_var->u.subscript.var);
 
@@ -503,7 +521,8 @@ transSubscriptVar(Tr_level level, S_table venv, S_table tenv, A_var subscript_va
 }
 
 static Tr_exp
-transVarDec(Tr_level level, S_table venv, S_table tenv, A_dec var_dec) {
+transVarDec(Tr_level level, S_table venv, S_table tenv, A_dec var_dec) 
+{
     Ty_ty deced_ty;
     struct expty init_expty = transExp(level, venv, tenv, var_dec->u.var.init);
 
@@ -541,7 +560,8 @@ transVarDec(Tr_level level, S_table venv, S_table tenv, A_dec var_dec) {
  * `A_field.typ` -> `Ty_ty`
  */
 static Ty_tyList
-makeFormalTyList(S_table tenv, A_fieldList params) {
+makeFormalTyList(S_table tenv, A_fieldList params) 
+{
     if (params == NULL)
         return NULL;
 
@@ -562,7 +582,8 @@ makeFormalTyList(S_table tenv, A_fieldList params) {
  * transExp(body)
  */
 static Tr_exp
-transFuncDec(Tr_level level, S_table venv, S_table tenv, A_dec func_dec) {
+transFuncDec(Tr_level level, S_table venv, S_table tenv, A_dec func_dec) 
+{
     A_fundec f;
     A_fundecList fl;
     A_fieldList params = NULL;
@@ -632,7 +653,8 @@ transFuncDec(Tr_level level, S_table venv, S_table tenv, A_dec func_dec) {
  * iter `A_dec.u.type` twice to handle recursion
  */
 static Tr_exp
-transTyDec(S_table venv, S_table tenv, A_dec ty_dec) {
+transTyDec(S_table venv, S_table tenv, A_dec ty_dec) 
+{
     A_nametyList iter;
     Ty_ty t1, t2;
 
@@ -660,7 +682,8 @@ transTyDec(S_table venv, S_table tenv, A_dec ty_dec) {
 }
 
 static Ty_ty
-transNameTy(S_table tenv, A_ty name_ty) {
+transNameTy(S_table tenv, A_ty name_ty) 
+{
     Ty_ty t = S_look(tenv, name_ty->u.name);
     if (t) {
         if (t->kind != Ty_name || t->u.name.ty) {
@@ -686,7 +709,8 @@ transNameTy(S_table tenv, A_ty name_ty) {
  * `A_fieldList` -> `Ty_fieldList`
  */
 static Ty_fieldList 
-makeTyFieldList(S_table tenv, A_fieldList field_list) {
+makeTyFieldList(S_table tenv, A_fieldList field_list) 
+{
     if (field_list == NULL)
         return NULL;
 
@@ -707,13 +731,15 @@ makeTyFieldList(S_table tenv, A_fieldList field_list) {
  * NOTE: type-id {} -> Ty_Record(NULL)
  */
 static Ty_ty
-transRecordTy(S_table tenv, A_ty record_ty) {
+transRecordTy(S_table tenv, A_ty record_ty) 
+{
     Ty_fieldList t = makeTyFieldList(tenv, record_ty->u.record);
     return Ty_Record(t);
 }
 
 static Ty_ty
-transArrayTy(S_table tenv, A_ty array_ty) {
+transArrayTy(S_table tenv, A_ty array_ty) 
+{
     Ty_ty t = S_look(tenv, array_ty->u.array);
     if (t == NULL) {
         EM_error(array_ty->pos, "Type %s use before declare", 
@@ -723,7 +749,8 @@ transArrayTy(S_table tenv, A_ty array_ty) {
     return Ty_Array(t);
 }
 
-struct expty transExp(Tr_level level, S_table venv, S_table tenv, A_exp a) {
+struct expty transExp(Tr_level level, S_table venv, S_table tenv, A_exp a) 
+{
     switch (a->kind) {
         case A_varExp: return transVar(level, venv, tenv, a->u.var);
         case A_nilExp: return expTy(Tr_nilExp(), Ty_Nil());
@@ -746,7 +773,8 @@ struct expty transExp(Tr_level level, S_table venv, S_table tenv, A_exp a) {
     }
 }
 
-struct expty transVar(Tr_level level, S_table venv, S_table tenv, A_var v) {
+struct expty transVar(Tr_level level, S_table venv, S_table tenv, A_var v) 
+{
     switch (v->kind) {
         case A_simpleVar: return transSimpleVar(level, venv, tenv, v);
         case A_fieldVar: return transFieldVar(level, venv, tenv, v);
@@ -755,7 +783,8 @@ struct expty transVar(Tr_level level, S_table venv, S_table tenv, A_var v) {
     }
 }
 
-Tr_exp transDec(Tr_level level, S_table venv, S_table tenv, A_dec d) {
+Tr_exp transDec(Tr_level level, S_table venv, S_table tenv, A_dec d) 
+{
     switch (d->kind) {
         case A_varDec: return transVarDec(level, venv, tenv, d);
         case A_functionDec: return transFuncDec(level, venv, tenv, d);
@@ -764,7 +793,8 @@ Tr_exp transDec(Tr_level level, S_table venv, S_table tenv, A_dec d) {
     }
 }
 
-Ty_ty transTy(S_table tenv, A_ty t) {
+Ty_ty transTy(S_table tenv, A_ty t) 
+{
     switch (t->kind) {
         case A_nameTy: return transNameTy(tenv, t);
         case A_recordTy: return transRecordTy(tenv, t);
@@ -773,7 +803,8 @@ Ty_ty transTy(S_table tenv, A_ty t) {
     }
 }
 
-F_fragList SEM_transProg(A_exp exp) {
+F_fragList SEM_transProg(A_exp exp) 
+{
     S_table venv = E_base_venv(), tenv = E_base_tenv();
     Tr_level outermost = Tr_outermost();
     Tr_level tiger_main = Tr_newLevel( outermost, Temp_namedlabel("tiger_main"), NULL);

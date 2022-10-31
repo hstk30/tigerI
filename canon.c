@@ -24,24 +24,28 @@ static T_stmList getNext(void);
 
 
 static expRefList 
-ExpRefList(T_exp *head, expRefList tail) {
+ExpRefList(T_exp *head, expRefList tail) 
+{
     expRefList p = (expRefList)checked_malloc(sizeof *p);
     p->head = head; 
     p->tail = tail;
     return p;
 }
 
-static bool isNop(T_stm x) {  
+static bool isNop(T_stm x) 
+{  
     return x->kind == T_EXP && x->u.EXP->kind == T_CONST;
- }
+}
 
-static T_stm seq(T_stm x, T_stm y) {
+static T_stm seq(T_stm x, T_stm y) 
+{
     if (isNop(x)) return y;
     if (isNop(y)) return x;
     return T_Seq(x,y);
 }
 
-static bool commute(T_stm x, T_exp y) {
+static bool commute(T_stm x, T_exp y) 
+{
     if (isNop(x)) 
         return TRUE;
     if (y->kind == T_NAME || y->kind == T_CONST) 
@@ -49,9 +53,13 @@ static bool commute(T_stm x, T_exp y) {
     return FALSE;
 }
 
-struct stmExp {T_stm s; T_exp e;};
+struct stmExp {
+    T_stm s; 
+    T_exp e;
+};
 
-static T_stm reorder(expRefList rlist) {
+static T_stm reorder(expRefList rlist) 
+{
     if (!rlist) 
         return T_Exp(T_Const(0)); /* nop */
     else if ((*rlist->head)->kind == T_CALL) {
@@ -73,7 +81,8 @@ static T_stm reorder(expRefList rlist) {
     }
 }
 
-static expRefList get_call_rlist(T_exp exp) {
+static expRefList get_call_rlist(T_exp exp) 
+{
     expRefList rlist, curr;
     T_expList args = exp->u.CALL.args;
     curr = rlist = ExpRefList(&exp->u.CALL.fun, NULL);
@@ -83,7 +92,8 @@ static expRefList get_call_rlist(T_exp exp) {
     return rlist;
 }
 
-static struct stmExp StmExp(T_stm stm, T_exp exp) {
+static struct stmExp StmExp(T_stm stm, T_exp exp) 
+{
     struct stmExp x;
     x.s = stm;
     x.e = exp;
@@ -150,7 +160,8 @@ static T_stm do_stm(T_stm stm)
 }
 
 /* linear gets rid of the top-level SEQ's, producing a list */
-static T_stmList linear(T_stm stm, T_stmList right) {
+static T_stmList linear(T_stm stm, T_stmList right) 
+{
     if (stm->kind == T_SEQ) 
         return linear(stm->u.SEQ.left,
                 linear(stm->u.SEQ.right,right));
@@ -162,11 +173,13 @@ static T_stmList linear(T_stm stm, T_stmList right) {
    satisfying the following properties:
       1.  No SEQ's or ESEQ's
       2.  The parent of every CALL is an EXP(..) or a MOVE(TEMP t,..) */
-T_stmList C_linearize(T_stm stm) {
+T_stmList C_linearize(T_stm stm) 
+{
     return linear(do_stm(stm), NULL);
 }
 
-static C_stmListList StmListList(T_stmList head, C_stmListList tail) {
+static C_stmListList StmListList(T_stmList head, C_stmListList tail) 
+{
     C_stmListList p = (C_stmListList)checked_malloc(sizeof *p);
     p->head = head; 
     p->tail = tail;
@@ -174,7 +187,8 @@ static C_stmListList StmListList(T_stmList head, C_stmListList tail) {
 }
  
 /* Go down a list looking for end of basic block */
-static C_stmListList next(T_stmList prevstms, T_stmList stms, Temp_label done) {
+static C_stmListList next(T_stmList prevstms, T_stmList stms, Temp_label done) 
+{
     if (!stms) 
         return next(prevstms, 
                 T_StmList(
@@ -201,7 +215,8 @@ static C_stmListList next(T_stmList prevstms, T_stmList stms, Temp_label done) {
 }
 
 /* Create the beginning of a basic block */
-static C_stmListList mkBlocks(T_stmList stms, Temp_label done) {
+static C_stmListList mkBlocks(T_stmList stms, Temp_label done) 
+{
     if (!stms) { 
         return NULL;
     }
@@ -228,7 +243,8 @@ static C_stmListList mkBlocks(T_stmList stms, Temp_label done) {
  * Also produce the "label" to which control will be passed
  * upon exit.
  */
-struct C_block C_basicBlocks(T_stmList stmList) {
+struct C_block C_basicBlocks(T_stmList stmList) 
+{
     struct C_block b;
     b.label = Temp_newlabel(); 
     b.stmLists = mkBlocks(stmList, b.label); 
@@ -239,14 +255,16 @@ struct C_block C_basicBlocks(T_stmList stmList) {
 static S_table block_env;
 static struct C_block global_block;
 
-static T_stmList getLast(T_stmList list) {
+static T_stmList getLast(T_stmList list) 
+{
     T_stmList last = list;
     while (last->tail->tail) 
         last = last->tail;
     return last;
 }
 
-static void trace(T_stmList list) {
+static void trace(T_stmList list) 
+{
     T_stmList last = getLast(list);
     T_stm lab = list->head;
     T_stm s = last->tail->head;
@@ -290,7 +308,8 @@ static void trace(T_stmList list) {
 
 /* get the next block from the list of stmLists, using only those that have
  * not been traced yet */
-static T_stmList getNext() {
+static T_stmList getNext() 
+{
     if (!global_block.stmLists)
         return T_StmList(T_Label(global_block.label), NULL);
     else {
@@ -316,7 +335,8 @@ static T_stmList getNext() {
  * in this reordering as many JUMP(T.NAME(lab)) statements
  * as possible are eliminated by falling through into T.LABEL(lab).
  */
-T_stmList C_traceSchedule(struct C_block b) { 
+T_stmList C_traceSchedule(struct C_block b) 
+{ 
     C_stmListList sList;
     block_env = S_empty();
     global_block = b;

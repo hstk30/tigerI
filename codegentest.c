@@ -18,7 +18,8 @@
 
 
 static void
-gen_as_proc(FILE *out, F_frag proc) {
+gen_as_proc(FILE *out, F_frag proc) 
+{
     T_stmList sl = C_linearize(proc->u.proc.body);
     struct C_block b = C_basicBlocks(sl);
     T_stmList canon_stm = C_traceSchedule(b);
@@ -31,7 +32,8 @@ gen_as_proc(FILE *out, F_frag proc) {
 }
 
 static void 
-gen_as_strs(FILE *out, F_fragList str_frags) {
+gen_as_strs(FILE *out, F_fragList str_frags) 
+{
     F_fragList iter;
 
     for (iter = str_frags; iter; iter = iter->tail) {
@@ -40,7 +42,8 @@ gen_as_strs(FILE *out, F_fragList str_frags) {
     }
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv) 
+{
     if (argc != 2) {
         fprintf(stderr,"usage: a.out filename\n"); 
         exit(1); 

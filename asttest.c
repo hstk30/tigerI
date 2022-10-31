@@ -5,7 +5,8 @@
 #include "parse.h" 
 
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv) 
+{
     if (argc != 2) {
         fprintf(stderr,"usage: a.out filename\n"); 
         return(1);

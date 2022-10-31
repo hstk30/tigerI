@@ -59,7 +59,8 @@ struct F_access_ {
 static F_access InFrame(int offset);
 static F_access InReg(Temp_temp reg);
 
-static F_access InFrame(int offset) {
+static F_access InFrame(int offset) 
+{
     F_access acc = checked_malloc(sizeof(*acc));
 
     acc->kind = inFrame;
@@ -68,7 +69,8 @@ static F_access InFrame(int offset) {
     return acc;
 }
 
-static F_access InReg(Temp_temp reg) {
+static F_access InReg(Temp_temp reg) 
+{
     F_access acc = checked_malloc(sizeof(*acc));
 
     acc->kind = inReg;
@@ -78,7 +80,8 @@ static F_access InReg(Temp_temp reg) {
 }
 
 static F_access
-makeAccess(F_frame f, bool escape) {
+makeAccess(F_frame f, bool escape) 
+{
     F_access access;
 
     if (escape) {
@@ -91,7 +94,8 @@ makeAccess(F_frame f, bool escape) {
     return access;
 }
 
-F_accessList F_AccessList(F_access head, F_accessList tail) {
+F_accessList F_AccessList(F_access head, F_accessList tail) 
+{
     F_accessList p = checked_malloc(sizeof(*p));
 
     p->head = head;
@@ -101,7 +105,8 @@ F_accessList F_AccessList(F_access head, F_accessList tail) {
 }
 
 static F_accessList
-makeFormals(F_frame f, U_boolList formals) {
+makeFormals(F_frame f, U_boolList formals) 
+{
     if (formals == NULL)
         return NULL;
 
@@ -115,7 +120,8 @@ makeFormals(F_frame f, U_boolList formals) {
     return F_AccessList(access, makeFormals(f, formals->tail));
 }
 
-F_frame F_newFrame(Temp_label name, U_boolList formals) {
+F_frame F_newFrame(Temp_label name, U_boolList formals) 
+{
     F_frame p = checked_malloc(sizeof(*p));
 
     p->name = name;
@@ -127,15 +133,18 @@ F_frame F_newFrame(Temp_label name, U_boolList formals) {
     return p;
 }
 
-Temp_label F_name(F_frame f) {
+Temp_label F_name(F_frame f) 
+{
     return f->name;
 }
 
-F_accessList F_formals(F_frame f) {
+F_accessList F_formals(F_frame f) 
+{
     return f->formals;
 }
 
-F_access F_allocLocal(F_frame f, bool escape) {
+F_access F_allocLocal(F_frame f, bool escape) 
+{
     F_access access = makeAccess(f, escape);
     F_accessList tail_node = F_AccessList(access, NULL);
 
@@ -150,7 +159,8 @@ F_access F_allocLocal(F_frame f, bool escape) {
     return access;
 }
 
-void F_initMap() {
+void F_initMap() 
+{
     if (F_tempMap != NULL)
         return ;
 
@@ -165,28 +175,44 @@ void F_initMap() {
 #endif
 }
 
-Temp_temp F_FP() {
+Temp_temp F_FP() 
+{
+    if (F_tempMap == NULL)
+        F_initMap();
     return XREGS[8];
 }
 
-Temp_temp F_SP() {
+Temp_temp F_SP() 
+{
+    if (F_tempMap == NULL)
+        F_initMap();
     return XREGS[2];
 }
 
-Temp_temp F_ZERO() {
+Temp_temp F_ZERO() 
+{
+    if (F_tempMap == NULL)
+        F_initMap();
     return XREGS[0];
 }
 
-Temp_temp F_RA() {
+Temp_temp F_RA() 
+{
+    if (F_tempMap == NULL)
+        F_initMap();
     return XREGS[1];
 }
 
 /* RV just use one reg */
-Temp_temp F_RV() {
+Temp_temp F_RV() 
+{
+    if (F_tempMap == NULL)
+        F_initMap();
     return XREGS[10];
 }
 
-Temp_tempList makeRegList(int *idxs, int len) {
+Temp_tempList makeRegList(int *idxs, int len) 
+{
     if (len == 0)
         return NULL;
 
@@ -195,7 +221,8 @@ Temp_tempList makeRegList(int *idxs, int len) {
             makeRegList(idxs + 1, len - 1));
 }
 
-Temp_tempList F_argRegs() {
+Temp_tempList F_argRegs() 
+{
     if (ARG_REGS != NULL)
         return ARG_REGS;
 
@@ -204,7 +231,8 @@ Temp_tempList F_argRegs() {
     return ARG_REGS;
 }
 
-Temp_tempList F_calleeSaves() {
+Temp_tempList F_calleeSaves() 
+{
     if (CALLEE_SAVES != NULL)
         return CALLEE_SAVES;
 
@@ -216,7 +244,8 @@ Temp_tempList F_calleeSaves() {
     return CALLEE_SAVES;
 }
 
-Temp_tempList F_callerSaves() {
+Temp_tempList F_callerSaves() 
+{
     if (CALLER_SAVES != NULL)
         return CALLER_SAVES;
 
@@ -229,11 +258,13 @@ Temp_tempList F_callerSaves() {
     return CALLER_SAVES;
 }
 
-T_exp F_externalCall(string s, T_expList args) {
+T_exp F_externalCall(string s, T_expList args) 
+{
     return T_Call(T_Name(Temp_namedlabel(s)), args);
 }
 
-T_exp F_Exp(F_access access, T_exp frame_ptr) {
+T_exp F_Exp(F_access access, T_exp frame_ptr) 
+{
     if (access->kind == inFrame) {
         return T_Mem(T_Binop(T_plus, frame_ptr, T_Const(access->u.offset)));
     } else {
@@ -241,7 +272,8 @@ T_exp F_Exp(F_access access, T_exp frame_ptr) {
     }
 }
 
-F_frag F_StringFrag(Temp_label label, string str) {
+F_frag F_StringFrag(Temp_label label, string str) 
+{
     F_frag p = checked_malloc(sizeof(*p));
 
     p->kind = F_stringFrag;
@@ -251,7 +283,8 @@ F_frag F_StringFrag(Temp_label label, string str) {
     return p;
 }
 
-F_frag F_ProcFrag(T_stm body, F_frame frame) {
+F_frag F_ProcFrag(T_stm body, F_frame frame) 
+{
     F_frag p = checked_malloc(sizeof(*p));
 
     p->kind = F_procFrag;
@@ -261,7 +294,8 @@ F_frag F_ProcFrag(T_stm body, F_frame frame) {
     return p;
 }
 
-F_fragList F_FragList(F_frag head, F_fragList tail) {
+F_fragList F_FragList(F_frag head, F_fragList tail) 
+{
     F_fragList p = checked_malloc(sizeof(*p));
 
     p->head = head;
@@ -270,26 +304,30 @@ F_fragList F_FragList(F_frag head, F_fragList tail) {
     return p;
 }
 
-T_stm F_procEntryExit1(F_frame frame, T_stm stm) {
+T_stm F_procEntryExit1(F_frame frame, T_stm stm) 
+{
     return stm;
 }
 
 /* TODO: */
-AS_instrList F_procEntryExit2(AS_instrList body) {
+AS_instrList F_procEntryExit2(AS_instrList body) 
+{
     if (!returnSink)
         returnSink = Temp_TempList(NULL, NULL);
 
     return AS_splice(body, AS_InstrList(AS_Oper("", NULL, returnSink, NULL), NULL));
 }
 
-AS_proc F_procEntryExit3(F_frame frame, AS_instrList body) {
+AS_proc F_procEntryExit3(F_frame frame, AS_instrList body) 
+{
     char buf[100];
     sprintf(buf, "PROCEDURE %s\n", S_name(frame->name));
     return AS_Proc(String(buf), body, "END\n");
 }
 
 /* debug info */
-void F_print(F_frame f) {
+void F_print(F_frame f) 
+{
     F_accessList iter;
     printf("Frame name: %s\n", S_name(f->name));
 

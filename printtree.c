@@ -13,7 +13,8 @@
 /* local function prototype */
 static void pr_tree_exp(FILE *out, T_exp exp, int d);
 
-static void indent(FILE *out, int d) {
+static void indent(FILE *out, int d) 
+{
     int i;
     for (i = 0; i <= d; i++) 
         fprintf(out, " ");
@@ -25,11 +26,12 @@ static char bin_oper[][12] = {
 };
 
 static char rel_oper[][12] = {
-  "EQ", "NE", "LT", "GT", "LE", "GE", 
-  "ULT", "ULE", "UGT", "UGE"
+    "EQ", "NE", "LT", "GT", "LE", "GE", 
+    "ULT", "ULE", "UGT", "UGE"
 };
  
-static void pr_stm(FILE *out, T_stm stm, int d) {
+static void pr_stm(FILE *out, T_stm stm, int d) 
+{
     switch (stm->kind) {
         case T_SEQ:
             indent(out, d);
@@ -78,7 +80,8 @@ static void pr_stm(FILE *out, T_stm stm, int d) {
     }
 }
 
-static void pr_tree_exp(FILE *out, T_exp exp, int d) {
+static void pr_tree_exp(FILE *out, T_exp exp, int d) 
+{
     switch (exp->kind) {
         case T_BINOP:
             indent(out, d); 
@@ -130,7 +133,8 @@ static void pr_tree_exp(FILE *out, T_exp exp, int d) {
     } /* end of switch */
 }
 
-void printStmList (FILE *out, T_stmList stmList) {
+void printStmList (FILE *out, T_stmList stmList) 
+{
     for (; stmList; stmList = stmList->tail) {
         pr_stm(out, stmList->head,0); 
         fprintf(out, "\n");

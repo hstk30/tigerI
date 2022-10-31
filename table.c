@@ -24,7 +24,8 @@ struct TAB_table_ {
 };
 
 
-static binder Binder(void *key, void *value, binder next, void *prevtop) {
+static binder Binder(void *key, void *value, binder next, void *prevtop) 
+{
     binder b = checked_malloc(sizeof(*b));
     b->key = key; 
     b->value=value; 
@@ -33,7 +34,8 @@ static binder Binder(void *key, void *value, binder next, void *prevtop) {
     return b;
 }
 
-TAB_table TAB_empty(void) { 
+TAB_table TAB_empty(void) 
+{ 
     TAB_table t = checked_malloc(sizeof(*t));
     int i;
     t->top = NULL;
@@ -51,7 +53,8 @@ TAB_table TAB_empty(void) {
  * reasonable and repeatable index into the table will result.
  */
 
-void TAB_enter(TAB_table t, void *key, void *value) {
+void TAB_enter(TAB_table t, void *key, void *value) 
+{
     int index;
     assert(t && key);
     
@@ -60,7 +63,8 @@ void TAB_enter(TAB_table t, void *key, void *value) {
     t->top = key;
 }
 
-void *TAB_look(TAB_table t, void *key) {
+void *TAB_look(TAB_table t, void *key) 
+{
     int index;
     binder b;
     assert(t && key);
@@ -73,7 +77,8 @@ void *TAB_look(TAB_table t, void *key) {
     return NULL;
 }
 
-void *TAB_pop(TAB_table t) {
+void *TAB_pop(TAB_table t) 
+{
     void *k; 
     binder b; 
     int index;
@@ -89,7 +94,8 @@ void *TAB_pop(TAB_table t) {
     return b->key;
 }
 
-void TAB_dump(TAB_table t, void (*show)(void *key, void *value)) {
+void TAB_dump(TAB_table t, void (*show)(void *key, void *value)) 
+{
     void *k = t->top;
     int index = ((unsigned)k) % TABSIZE;
 

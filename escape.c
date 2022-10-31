@@ -8,7 +8,8 @@ static void traverseDec(S_table env, int depth, A_dec d);
 static void traverseVar(S_table env, int depth, A_var v);
 
 
-static void traverseExp(S_table eenv, int depth, A_exp e) {
+static void traverseExp(S_table eenv, int depth, A_exp e) 
+{
     switch (e->kind) {
         case A_varExp: return traverseVar(eenv, depth, e->u.var);
         case A_nilExp: return ;
@@ -85,7 +86,8 @@ static void traverseExp(S_table eenv, int depth, A_exp e) {
     }
 }
 
-static void traverseDec(S_table eenv, int depth, A_dec d) {
+static void traverseDec(S_table eenv, int depth, A_dec d) 
+{
     switch (d->kind) {
         case A_varDec: {
             /* first init then var */
@@ -116,7 +118,8 @@ static void traverseDec(S_table eenv, int depth, A_dec d) {
     }
 }
 
-static void traverseVar(S_table eenv, int depth, A_var v) {
+static void traverseVar(S_table eenv, int depth, A_var v) 
+{
     switch (v->kind) {
         case A_simpleVar: {
             E_enventry x = S_look(eenv, v->u.simple);
@@ -139,7 +142,8 @@ static void traverseVar(S_table eenv, int depth, A_var v) {
     }
 }
 
-void Esc_findEscape(A_exp ast_root) {
+void Esc_findEscape(A_exp ast_root) 
+{
     S_table eenv = E_base_eenv();
     int init_deep = 0;
 

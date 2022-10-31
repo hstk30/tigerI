@@ -27,7 +27,8 @@ typedef struct intList {
     struct intList *rest;
 } *IntList;
 
-static IntList intList(int i, IntList rest) {
+static IntList intList(int i, IntList rest) 
+{
     IntList l = checked_malloc(sizeof *l);
     l->i = i; 
     l->rest = rest;
@@ -39,9 +40,11 @@ static IntList linePos = NULL;
 void EM_newline(void) {
     lineNum++;
     linePos = intList(EM_tokPos, linePos);
+
 }
 
-void EM_error(int pos, char *message, ...) {
+void EM_error(int pos, char *message, ...) 
+{
     va_list ap;
     IntList lines = linePos; 
     int num = lineNum;
@@ -63,7 +66,8 @@ void EM_error(int pos, char *message, ...) {
     fprintf(stderr,"\n");
 }
 
-void EM_reset(string fname) {
+void EM_reset(string fname) 
+{
     anyErrors = FALSE; 
     fileName = fname; 
     lineNum = 1;

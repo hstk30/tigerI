@@ -30,7 +30,8 @@ struct G_node_ {
     void *info;
 };
 
-G_graph G_Graph(void) {
+G_graph G_Graph(void) 
+{
     G_graph g = (G_graph)checked_malloc(sizeof *g);
     g->nodecount = 0;
     g->mynodes = NULL;
@@ -38,7 +39,8 @@ G_graph G_Graph(void) {
     return g;
 }
 
-G_nodeList G_NodeList(G_node head, G_nodeList tail) {
+G_nodeList G_NodeList(G_node head, G_nodeList tail) 
+{
     G_nodeList n = (G_nodeList)checked_malloc(sizeof *n);
     n->head = head;
     n->tail = tail;
@@ -46,7 +48,8 @@ G_nodeList G_NodeList(G_node head, G_nodeList tail) {
 }
 
 /* generic creation of G_node */
-G_node G_Node(G_graph g, void *info) {
+G_node G_Node(G_graph g, void *info) 
+{
     G_node n = (G_node)checked_malloc(sizeof *n);
     G_nodeList p = G_NodeList(n, NULL);
     assert(g);
@@ -64,7 +67,8 @@ G_node G_Node(G_graph g, void *info) {
     return n;
 }
 
-G_nodeList G_nodes(G_graph g) {
+G_nodeList G_nodes(G_graph g) 
+{
     assert(g);
     return g->mynodes;
 } 
@@ -76,6 +80,7 @@ bool G_inNodeList(G_node a, G_nodeList l) {
         if (p->head == a) 
             return TRUE;
     return FALSE;
+
 }
 
 void G_addEdge(G_node from, G_node to) {
@@ -86,9 +91,11 @@ void G_addEdge(G_node from, G_node to) {
         return;
     to->preds = G_NodeList(from, to->preds);
     from->succs = G_NodeList(to, from->succs);
+
 }
 
-static G_nodeList delete(G_node a, G_nodeList l) {
+static G_nodeList delete(G_node a, G_nodeList l) 
+{
     assert(a && l);
     if (a == l->head) 
         return l->tail;
@@ -96,7 +103,8 @@ static G_nodeList delete(G_node a, G_nodeList l) {
         return G_NodeList(l->head, delete(a, l->tail));
 }
 
-void G_rmEdge(G_node from, G_node to) {
+void G_rmEdge(G_node from, G_node to) 
+{
     assert(from && to);
     to->preds = delete(from, to->preds);
     from->succs = delete(to,from->succs);
@@ -105,7 +113,8 @@ void G_rmEdge(G_node from, G_node to) {
 /*
  * Print a human-readable dump for debugging.
  */
-void G_show(FILE *out, G_nodeList p, void showInfo(void *)) {
+void G_show(FILE *out, G_nodeList p, void showInfo(void *)) 
+{
     for (; p != NULL; p = p->tail) {
         G_node n = p->head;
         G_nodeList q;
@@ -119,22 +128,26 @@ void G_show(FILE *out, G_nodeList p, void showInfo(void *)) {
     }
 }
 
-G_nodeList G_succ(G_node n) { 
+G_nodeList G_succ(G_node n) 
+{ 
     assert(n); 
     return n->succs; 
 }
 
-G_nodeList G_pred(G_node n) {
+G_nodeList G_pred(G_node n) 
+{
     assert(n); 
     return n->preds; 
 }
 
-bool G_goesTo(G_node from, G_node n) {
+bool G_goesTo(G_node from, G_node n) 
+{
   return G_inNodeList(n, G_succ(from));
 }
 
 /* return length of predecessor list for node n */
-static int inDegree(G_node n) { 
+static int inDegree(G_node n) 
+{ 
     int deg = 0;
     G_nodeList p;
     for (p = G_pred(n); p != NULL; p = p->tail) 
@@ -143,7 +156,8 @@ static int inDegree(G_node n) {
 }
 
 /* return length of successor list for node n */
-static int outDegree(G_node n) { 
+static int outDegree(G_node n) 
+{ 
     int deg = 0;
     G_nodeList p; 
     for(p=G_succ(n); p!=NULL; p=p->tail) 
@@ -151,12 +165,14 @@ static int outDegree(G_node n) {
     return deg;
 }
 
-int G_degree(G_node n) {
+int G_degree(G_node n) 
+{
     return inDegree(n) + outDegree(n);
 }
 
 /* put list b at the back of list a and return the concatenated list */
-static G_nodeList cat(G_nodeList a, G_nodeList b) {
+static G_nodeList cat(G_nodeList a, G_nodeList b) 
+{
     if (a == NULL) 
         return b;
     else
@@ -165,26 +181,31 @@ static G_nodeList cat(G_nodeList a, G_nodeList b) {
 
 /* create the adjacency list for node n by combining the successor and 
  * predecessor lists of node n */
-G_nodeList G_adj(G_node n) {
+G_nodeList G_adj(G_node n) 
+{
     return cat(G_succ(n), G_pred(n));
 }
 
-void *G_nodeInfo(G_node n) {
+void *G_nodeInfo(G_node n) 
+{
     return n->info;
 }
 
 
 /* G_node table functions */
 
-G_table G_empty(void) {
+G_table G_empty(void) 
+{
     return TAB_empty();
 }
 
-void G_enter(G_table t, G_node node, void *value) {
+void G_enter(G_table t, G_node node, void *value) 
+{
     TAB_enter(t, node, value);
 }
 
-void *G_look(G_table t, G_node node) {
+void *G_look(G_table t, G_node node) 
+{
     return TAB_look(t, node);
 }
 

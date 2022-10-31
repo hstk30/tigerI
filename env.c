@@ -3,7 +3,8 @@
 #include "env.h"
 #include "temp.h"
 
-E_enventry E_VarEntry(Tr_access access, Ty_ty ty) {
+E_enventry E_VarEntry(Tr_access access, Ty_ty ty) 
+{
     E_enventry entry = checked_malloc(sizeof(*entry));
     entry->kind = E_varEntry;
     entry->u.var.access = access;
@@ -12,7 +13,8 @@ E_enventry E_VarEntry(Tr_access access, Ty_ty ty) {
 }
 
 E_enventry 
-E_FunEntry(Tr_level level, Temp_label label, Ty_tyList formals, Ty_ty results) {
+E_FunEntry(Tr_level level, Temp_label label, Ty_tyList formals, Ty_ty results) 
+{
     E_enventry entry = checked_malloc(sizeof(*entry));
     entry->kind = E_funEntry;
     entry->u.fun.level = level;
@@ -22,7 +24,8 @@ E_FunEntry(Tr_level level, Temp_label label, Ty_tyList formals, Ty_ty results) {
     return entry;
 }
 
-E_enventry E_EscEntry(int depth, bool *escape) {
+E_enventry E_EscEntry(int depth, bool *escape) 
+{
     E_enventry entry = checked_malloc(sizeof(*entry));
     entry->kind = E_escEntry;
     entry->u.escape.depth = depth;
@@ -30,7 +33,8 @@ E_enventry E_EscEntry(int depth, bool *escape) {
     return entry;
 }
 
-S_table E_base_tenv() {
+S_table E_base_tenv() 
+{
     S_table tenv = S_empty();
     S_enter(tenv, S_Symbol("int"), Ty_Int());
     S_enter(tenv, S_Symbol("string"), Ty_String());
@@ -38,7 +42,8 @@ S_table E_base_tenv() {
     return tenv;
 }
 
-S_table E_base_venv() {
+S_table E_base_venv() 
+{
     S_table venv = S_empty();
 
     S_enter(venv, S_Symbol("print"), 
@@ -83,7 +88,8 @@ S_table E_base_venv() {
     return venv;
 }
 
-S_table E_base_eenv() {
+S_table E_base_eenv() 
+{
     S_table eenv = S_empty();
     return eenv;
 }

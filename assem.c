@@ -10,7 +10,8 @@
 #include "errormsg.h"
 
 
-AS_targets AS_Targets(Temp_labelList labels) {
+AS_targets AS_Targets(Temp_labelList labels) 
+{
     AS_targets p = checked_malloc(sizeof *p);
 
     p->labels = labels;
@@ -18,7 +19,8 @@ AS_targets AS_Targets(Temp_labelList labels) {
     return p;
 }
 
-AS_instr AS_Oper(string a, Temp_tempList d, Temp_tempList s, AS_targets j) {
+AS_instr AS_Oper(string a, Temp_tempList d, Temp_tempList s, AS_targets j) 
+{
     AS_instr p = (AS_instr)checked_malloc(sizeof *p);
 
     p->kind = I_OPER;
@@ -30,7 +32,8 @@ AS_instr AS_Oper(string a, Temp_tempList d, Temp_tempList s, AS_targets j) {
     return p;
 }
 
-AS_instr AS_Label(string a, Temp_label label) {
+AS_instr AS_Label(string a, Temp_label label) 
+{
     AS_instr p = (AS_instr)checked_malloc(sizeof *p);
 
     p->kind = I_LABEL;
@@ -40,7 +43,8 @@ AS_instr AS_Label(string a, Temp_label label) {
     return p;
 }
 
-AS_instr AS_Move(string a, Temp_tempList d, Temp_tempList s) {
+AS_instr AS_Move(string a, Temp_tempList d, Temp_tempList s) 
+{
     AS_instr p = (AS_instr)checked_malloc(sizeof *p);
 
     p->kind = I_MOVE;
@@ -51,7 +55,8 @@ AS_instr AS_Move(string a, Temp_tempList d, Temp_tempList s) {
     return p;
 }
 
-AS_instrList AS_InstrList(AS_instr head, AS_instrList tail) {
+AS_instrList AS_InstrList(AS_instr head, AS_instrList tail) 
+{
     AS_instrList p = (AS_instrList)checked_malloc(sizeof *p);
 
     p->head = head; 
@@ -61,7 +66,8 @@ AS_instrList AS_InstrList(AS_instr head, AS_instrList tail) {
 }
 
 /* put list b at the end of list a */
-AS_instrList AS_splice(AS_instrList a, AS_instrList b) {
+AS_instrList AS_splice(AS_instrList a, AS_instrList b) 
+{
     if (a == NULL) 
         return b;
 
@@ -73,7 +79,8 @@ AS_instrList AS_splice(AS_instrList a, AS_instrList b) {
     return a;
 }
 
-static Temp_temp nthTemp(Temp_tempList list, int i) {
+static Temp_temp nthTemp(Temp_tempList list, int i) 
+{
     assert(list);
     if (i == 0) 
         return list->head;
@@ -81,7 +88,8 @@ static Temp_temp nthTemp(Temp_tempList list, int i) {
         return nthTemp(list->tail, i - 1);
 }
 
-static Temp_label nthLabel(Temp_labelList list, int i) {
+static Temp_label nthLabel(Temp_labelList list, int i) 
+{
     assert(list);
     if (i == 0) 
         return list->head;
@@ -99,7 +107,8 @@ format(char *result, string assem,
         Temp_tempList dst, 
         Temp_tempList src, 
         AS_targets jumps, 
-        Temp_map m) {
+        Temp_map m) 
+{
     char *p;
     int i = 0; /* offset to result string */
     for(p = assem; p && *p != '\0'; p++)
@@ -142,7 +151,8 @@ format(char *result, string assem,
 }
 
 
-void AS_print(FILE *out, AS_instr i, Temp_map m) {
+void AS_print(FILE *out, AS_instr i, Temp_map m) 
+{
     char r[200]; /* result */
 
     switch (i->kind) {
@@ -163,14 +173,16 @@ void AS_print(FILE *out, AS_instr i, Temp_map m) {
 }
 
 /* c should be COL_color; temporarily it is not */
-void AS_printInstrList (FILE *out, AS_instrList iList, Temp_map m) {
+void AS_printInstrList (FILE *out, AS_instrList iList, Temp_map m) 
+{
     for (; iList; iList = iList->tail) {
         AS_print(out, iList->head, m);
     }
     fprintf(out, "\n");
 }
 
-AS_proc AS_Proc(string p, AS_instrList b, string e) {
+AS_proc AS_Proc(string p, AS_instrList b, string e) 
+{
     AS_proc proc = checked_malloc(sizeof(*proc));
 
     proc->prolog = p; 

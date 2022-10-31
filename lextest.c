@@ -19,11 +19,13 @@ string toknames[] = {
 };
 
 
-string tokname(tok) {
+string tokname(tok) 
+{
     return tok<257 || tok>299 ? "BAD_TOKEN" : toknames[tok-257];
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv) 
+{
     string fname; int tok;
     if (argc!=2) {
         fprintf(stderr,"usage: a.out filename\n"); 

@@ -26,14 +26,16 @@ static void pr_nametyList(FILE *out, A_nametyList v, int d);
 static void pr_efield(FILE *out, A_efield v, int d);
 static void pr_efieldList(FILE *out, A_efieldList v, int d);
 
-static void indent(FILE *out, int d) {
+static void indent(FILE *out, int d) 
+{
     int i;
     for (i = 0; i <= d; i++) 
         fprintf(out, " ");
 }
 
 /* Print A_var types. Indent d spaces. */
-static void pr_var(FILE *out, A_var v, int d) {
+static void pr_var(FILE *out, A_var v, int d) 
+{
     indent(out, d);
     switch (v->kind) {
         case A_simpleVar:
@@ -58,12 +60,14 @@ static char str_oper[][12] = {
     "PLUS", "MINUS", "TIMES", "DIVIDE", 
     "EQUAL", "NOTEQUAL", "LESSTHAN", "LESSEQ", "GREAT", "GREATEQ"};
 
-static void pr_oper(FILE *out, A_oper d) {
+static void pr_oper(FILE *out, A_oper d) 
+{
     fprintf(out, "%s", str_oper[d]);
 }
 
 /* Print A_var types. Indent d spaces. */
-void pr_exp(FILE *out, A_exp v, int d) {
+void pr_exp(FILE *out, A_exp v, int d) 
+{
     indent(out, d);
     switch (v->kind) {
         case A_varExp:
@@ -142,7 +146,8 @@ void pr_exp(FILE *out, A_exp v, int d) {
     } 
 }
 
-static void pr_dec(FILE *out, A_dec v, int d) {
+static void pr_dec(FILE *out, A_dec v, int d) 
+{
     indent(out, d);
     switch (v->kind) {
         case A_functionDec:
@@ -166,7 +171,8 @@ static void pr_dec(FILE *out, A_dec v, int d) {
     } 
 }
 
-static void pr_ty(FILE *out, A_ty v, int d) {
+static void pr_ty(FILE *out, A_ty v, int d) 
+{
     indent(out, d);
     switch (v->kind) {
         case A_nameTy:
@@ -184,14 +190,16 @@ static void pr_ty(FILE *out, A_ty v, int d) {
     } 
 }
 
-static void pr_field(FILE *out, A_field v, int d) {
+static void pr_field(FILE *out, A_field v, int d) 
+{
     indent(out, d);
     fprintf(out, "field(%s,\n", S_name(v->name));
     indent(out, d + 4); fprintf(out, "%s,\n", S_name(v->typ));
     indent(out, d + 4); fprintf(out, "%s", v->escape ? "TRUE)" : "FALSE)");
 }
 
-static void pr_fieldList(FILE *out, A_fieldList v, int d) {
+static void pr_fieldList(FILE *out, A_fieldList v, int d) 
+{
     indent(out, d);
     if (v) {
         fprintf(out, "fieldList(\n");
@@ -201,7 +209,8 @@ static void pr_fieldList(FILE *out, A_fieldList v, int d) {
     else fprintf(out, "fieldList()");
 }
 
-static void pr_expList(FILE *out, A_expList v, int d) {
+static void pr_expList(FILE *out, A_expList v, int d) 
+{
     indent(out, d);
     if (v) {
         fprintf(out, "expList(\n"); 
@@ -213,7 +222,8 @@ static void pr_expList(FILE *out, A_expList v, int d) {
 
 }
 
-static void pr_fundec(FILE *out, A_fundec v, int d) {
+static void pr_fundec(FILE *out, A_fundec v, int d) 
+{
     indent(out, d);
     fprintf(out, "fundec(%s,\n", S_name(v->name));
     pr_fieldList(out, v->params, d + 4); fprintf(out, ",\n");
@@ -223,7 +233,8 @@ static void pr_fundec(FILE *out, A_fundec v, int d) {
     pr_exp(out, v->body, d + 4); fprintf(out, ")");
 }
 
-static void pr_fundecList(FILE *out, A_fundecList v, int d) {
+static void pr_fundecList(FILE *out, A_fundecList v, int d) 
+{
     indent(out, d);
     if (v) {
         fprintf(out, "fundecList(\n"); 
@@ -233,7 +244,8 @@ static void pr_fundecList(FILE *out, A_fundecList v, int d) {
     else fprintf(out, "fundecList()");
 }
 
-static void pr_decList(FILE *out, A_decList v, int d) {
+static void pr_decList(FILE *out, A_decList v, int d) 
+{
     indent(out, d);
     if (v) {
         fprintf(out, "decList(\n"); 
@@ -245,13 +257,15 @@ static void pr_decList(FILE *out, A_decList v, int d) {
 
 }
 
-static void pr_namety(FILE *out, A_namety v, int d) {
+static void pr_namety(FILE *out, A_namety v, int d) 
+{
     indent(out, d);
     fprintf(out, "namety(%s,\n", S_name(v->name)); 
     pr_ty(out, v->ty, d + 4); fprintf(out, ")");
 }
 
-static void pr_nametyList(FILE *out, A_nametyList v, int d) {
+static void pr_nametyList(FILE *out, A_nametyList v, int d) 
+{
     indent(out, d);
     if (v) {
         fprintf(out, "nametyList(\n"); 
@@ -261,7 +275,8 @@ static void pr_nametyList(FILE *out, A_nametyList v, int d) {
     else fprintf(out, "nametyList()");
 }
 
-static void pr_efield(FILE *out, A_efield v, int d) {
+static void pr_efield(FILE *out, A_efield v, int d) 
+{
     indent(out, d);
     if (v) {
         fprintf(out, "efield(%s,\n", S_name(v->name));
@@ -270,7 +285,8 @@ static void pr_efield(FILE *out, A_efield v, int d) {
     else fprintf(out, "efield()");
 }
 
-static void pr_efieldList(FILE *out, A_efieldList v, int d) {
+static void pr_efieldList(FILE *out, A_efieldList v, int d) 
+{
     indent(out, d);
     if (v) {
         fprintf(out, "efieldList(\n"); 
