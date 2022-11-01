@@ -45,7 +45,7 @@ munchMoveStm(T_stm mov)
             Temp_temp d0 = munchExp(dst->u.MEM);
             /* Normally, not allow to `move` from `MEM` to `MEM` */
             Temp_temp temp = Temp_newtemp();
-            emit(AS_Move(String("ldr `d1, [`s0]"), TTL(temp, NULL), TTL(s0, NULL)));
+            emit(AS_Move(String("ldr `d0, [`s0]"), TTL(temp, NULL), TTL(s0, NULL)));
             emit(AS_Move(String("str `d1, [`d0]"), TTL(d0, TTL(temp, NULL)), NULL));
         } else {
             Temp_temp s0 = munchExp(src);

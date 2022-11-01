@@ -30,14 +30,14 @@ munchMoveStm(T_stm mov)
             /* MOVE( MEM( BINOP(PLUS, TEMP t100, CONST 8)), CONST 8) */
             Temp_temp d0 = munchExp(dst->u.MEM->u.BINOP.left);
             Temp_temp s0 = munchExp(src);
-            sprintf(buf, "sd `s0, %d(`d0`)`", dst->u.MEM->u.BINOP.right->u.CONST);
+            sprintf(buf, "sd `s0, %d(`d0)", dst->u.MEM->u.BINOP.right->u.CONST);
             emit(AS_Move(String(buf), TTL(d0, NULL), TTL(s0, NULL)));
         } else if (dst->u.MEM->kind == T_BINOP 
                     && dst->u.MEM->u.BINOP.op == T_plus
                     && dst->u.MEM->u.BINOP.left->kind == T_CONST) {
             Temp_temp d0 = munchExp(dst->u.MEM->u.BINOP.right);
             Temp_temp s0 = munchExp(src);
-            sprintf(buf, "sd `s0, %d(`d0`)`", dst->u.MEM->u.BINOP.left->u.CONST);
+            sprintf(buf, "sd `s0, %d(`d0)", dst->u.MEM->u.BINOP.left->u.CONST);
             emit(AS_Move(String(buf), TTL(d0, NULL), TTL(s0, NULL)));
         } else if (src->kind == T_MEM) {
             /* MOVE( MEM(e1), MEM(e2)) */
@@ -45,7 +45,7 @@ munchMoveStm(T_stm mov)
             Temp_temp d0 = munchExp(dst->u.MEM);
             /* Normally, not allow to `move` from `MEM` to `MEM` */
             Temp_temp temp = Temp_newtemp();
-            emit(AS_Move(String("ld `d1, (`s0)"), TTL(temp, NULL), TTL(s0, NULL)));
+            emit(AS_Move(String("ld `d0, (`s0)"), TTL(temp, NULL), TTL(s0, NULL)));
             emit(AS_Move(String("sd `d1, (`d0)"), TTL(d0, TTL(temp, NULL)), NULL));
         } else {
             Temp_temp s0 = munchExp(src);
@@ -212,7 +212,7 @@ munchMemExp(T_exp e)
         emit(AS_Move(String(buf), TTL(d0, NULL), TTL(F_ZERO(), NULL)));
     } else {
         s0 = munchExp(e->u.MEM);
-        emit(AS_Move(String("ld `d0, 0(`s0`)"), TTL(d0, NULL), TTL(s0, NULL)));
+        emit(AS_Move(String("ld `d0, 0(`s0)"), TTL(d0, NULL), TTL(s0, NULL)));
     }
 
     return d0;

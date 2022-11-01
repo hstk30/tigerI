@@ -5,6 +5,11 @@
 #ifndef GRAPH_H_
 #define GRAPH_H_
 
+#include <stdio.h>
+
+#include "util.h"
+
+
 typedef struct G_graph_ *G_graph;  /* The "graph" type */
 typedef struct G_node_ *G_node;    /* The "node" type */
 

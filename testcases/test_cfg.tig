@@ -1,0 +1,17 @@
+let 
+    var N: int := 2
+    var a: int := 0
+    var b := a + 1
+    var c := 0 
+in
+    while a < N
+    do
+    (
+        b := a + 1;
+        c := c + b;
+        a := b * 2
+    );
+    c
+end
+
+
