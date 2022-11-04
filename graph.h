@@ -8,16 +8,17 @@
 #include <stdio.h>
 
 #include "util.h"
+#include "table.h"
 
 
-typedef struct G_graph_ *G_graph;  /* The "graph" type */
 typedef struct G_node_ *G_node;    /* The "node" type */
-
 typedef struct G_nodeList_ *G_nodeList;
 struct G_nodeList_ { 
     G_node head; 
     G_nodeList tail;
 };
+
+typedef struct G_graph_ *G_graph;  /* The "graph" type */
 
 /* Make a new graph */
 G_graph G_Graph(void); 
@@ -42,7 +43,7 @@ void G_rmEdge(G_node from, G_node to);
 
 /* Show all the nodes and edges in the graph, using the function "showInfo"
     to print the name of each node */
-void G_show(FILE *out, G_nodeList p, void showInfo(void *));
+void G_show(FILE *out, G_nodeList p, void showInfo(FILE *, void *));
 
 /* Get all the successors of node "n" */
 G_nodeList G_succ(G_node n);

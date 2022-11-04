@@ -6,14 +6,6 @@
 #include <assert.h>
 
 #include "graph.h"
-#include "symbol.h"
-#include "temp.h"
-#include "tree.h"
-#include "absyn.h"
-#include "assem.h"
-#include "frame.h"
-#include "errormsg.h"
-#include "table.h"
 
 
 struct G_graph_ {
@@ -26,7 +18,7 @@ struct G_node_ {
     int mykey;
     G_nodeList succs;
     G_nodeList preds;
-    void *info;  /* the rel AS_instr */
+    void *info;  /* diff graph set diff info */
 };
 
 G_graph G_Graph(void)
@@ -120,15 +112,15 @@ void G_rmEdge(G_node from, G_node to)
 /*
  * Print a human-readable dump for debugging.
  */
-void G_show(FILE *out, G_nodeList p, void showInfo(void *))
+void G_show(FILE *out, G_nodeList p, void showInfo(FILE *, void *))
 {
     for (; p != NULL; p = p->tail) {
         G_node n = p->head;
         G_nodeList q;
         assert(n);
-        if (showInfo)
-            showInfo(n->info);
         fprintf(out, " (%d): ", n->mykey);
+        if (showInfo)
+            showInfo(out, n->info);
         for (q = G_succ(n); q != NULL; q = q->tail)
             fprintf(out, "%d ", q->head->mykey);
         fprintf(out, "\n");

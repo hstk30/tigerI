@@ -18,7 +18,7 @@
 
 
 static void
-gen_as_proc(FILE *out, F_frag proc) 
+gen_as_proc(FILE *out, F_frag proc)
 {
     T_stmList sl = C_linearize(proc->u.proc.body);
     struct C_block b = C_basicBlocks(sl);
@@ -31,8 +31,8 @@ gen_as_proc(FILE *out, F_frag proc)
     AS_printInstrList(out, instr_codes, Temp_layerMap(F_tempMap, Temp_name()));
 }
 
-static void 
-gen_as_strs(FILE *out, F_fragList str_frags) 
+static void
+gen_as_strs(FILE *out, F_fragList str_frags)
 {
     F_fragList iter;
 
@@ -42,11 +42,11 @@ gen_as_strs(FILE *out, F_fragList str_frags)
     }
 }
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
     if (argc != 2) {
-        fprintf(stderr,"usage: a.out filename\n"); 
-        exit(1); 
+        fprintf(stderr, "usage: a.out filename\n");
+        exit(1);
     }
 
     F_initMap();

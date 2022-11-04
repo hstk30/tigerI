@@ -13,8 +13,12 @@ struct T_expList_ {
     T_exp head; 
     T_expList tail;
 };
+
 typedef struct T_stmList_ *T_stmList;
-struct T_stmList_ {T_stm head; T_stmList tail;};
+struct T_stmList_ {
+    T_stm head; 
+    T_stmList tail;
+};
 
 typedef enum {
     T_plus, T_minus, T_mul, T_div,
