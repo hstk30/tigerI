@@ -9,7 +9,12 @@ typedef char bool;
 #define TRUE 1
 #define FALSE 0
 
-void *checked_malloc(int);
+void *Malloc(size_t);
+#define checked_malloc Malloc
+void *Calloc(size_t, size_t);
+void *Realloc(void *ptr, size_t size);
+void Free(void *ptr);
+
 string String(char *);
 
 typedef struct U_boolList_ *U_boolList;
